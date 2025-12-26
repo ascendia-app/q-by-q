@@ -17,25 +17,95 @@ body {
   color: var(--dark);
 }
 
-/* Header */
+
 .header {
-  text-align: center;
-  padding: 2.5rem 1rem;
+  position: relative;
+  padding: 1rem 2rem;
+  background: linear-gradient(180deg, #f0f9ff, #ffffff);
+  text-align: center; /* center content by default */
 }
 
-.header h1 {
-  font-size: 3rem;
+/* Title always in the middle */
+.header-title {
+  display: inline-block;
+  text-align: center;
+}
+
+.header-title h1 {
+  font-size: 2.5rem;
   background: linear-gradient(90deg, var(--blue), var(--teal));
-  -webkit-background-clip: text; /* For WebKit browsers */
-  background-clip: text;         /* Standard property */
+  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
   margin: 0;
 }
 
-.header p {
-  margin-top: 0.5rem;
+.header-title p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.95rem;
   color: #475569;
 }
+
+/* Timer positioned absolutely on top right */
+.header-timer {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Timer boxes horizontal */
+#timer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: bold;
+}
+
+.time-box {
+  background: white;
+  color: var(--dark);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.5rem;
+  border: 2px solid #cbd5e1; /* grey border */
+  min-width: 50px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.6rem;
+}
+
+.colon {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--dark);
+}
+
+/* Timer control buttons */
+.timer-controls {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.timer-controls button {
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: var(--dark);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.timer-controls button:hover {
+  background: #f1f5f9;
+}
+
+
+
 
 /* Paper selection */
 .paper-selection {
@@ -64,12 +134,11 @@ body {
 
 /* Viewer layout */
 .viewer {
-  max-width: 1100px;
-  margin: 2rem auto;
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 1.5rem;
-  padding: 0 1rem;
+  width: 100%;
+  min-height: 500px;
 }
 
 /* Sidebar */
@@ -82,7 +151,8 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
-    min-height: 200px;
+  min-height: 200px;
+  width: 90px;
 }
 
 .question-btn {
@@ -99,18 +169,20 @@ body {
   color: white;
   border: none;
 }
+
+/* Question display */
 .question-display {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* content flows top-down */
-  height: 450px; /* slightly taller for better spacing */
-  padding: 2rem;
+  width: 100%;
   background: white;
   border-radius: 1rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  position: relative; /* allows absolute positioning if needed */
+  padding: 2rem;
+  position: relative;
 }
 
+/* Question header */
 .question-header {
   display: flex;
   justify-content: space-between;
@@ -119,78 +191,104 @@ body {
   font-weight: 600;
 }
 
-.question-content {
-  flex: 1; /* takes all middle space */
+/* Question container with arrows */
+.question-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  text-align: center;
+  gap: 1rem; /* space between arrows and images */
+  position: relative;
 }
 
-
-.controls-row {
+/* Question images stack vertically */
+.question-content {
   display: flex;
-  justify-content: space-between; /* left/right alignment */
-  align-items: center;             /* vertically centered */
-  width: 100%;                     /* full width of question box */
-  margin-top: auto;                /* stick to bottom */
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.nav-buttons {
-  display: flex;
-  gap: 1rem;                       /* space between Previous/Next */
+/* Individual images */
+.question-image,
+.markscheme-image {
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* Gradient-themed buttons */
-button.secondary {
+/* Arrow buttons */
+.image-arrow {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
   background: linear-gradient(135deg, var(--teal), var(--blue));
   color: white;
-  border: none;
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.6rem;
-  font-weight: bold;
+  font-size: 1.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   transition: 0.3s;
 }
 
-button.secondary:hover {
+.image-arrow:hover {
   background: linear-gradient(135deg, var(--blue), var(--teal));
 }
 
+.image-arrow.left {
+  margin-right: 10px;
+}
+
+.image-arrow.right {
+  margin-left: 10px;
+}
 button.primary {
-  background: white;
-  color: #475569; /* medium grey text */
-  border: 1.5px solid #cbd5e1; /* light grey border */
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.6rem;
-  font-weight: bold;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;        /* pill-shaped */
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: 0.3s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 button.primary:hover {
-  background: #f1f5f9; /* very light grey on hover */
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  box-shadow: 0 7px 18px rgba(0,0,0,0.25);
 }
 
+
+/* Markscheme button container */
+.mark-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Markscheme viewer */
 .markscheme-viewer {
-  max-height: 0;           /* collapsed by default */
+  height: 0; 
   overflow: hidden;
   margin-top: 1rem;
-  padding: 0 1rem;         /* horizontal padding only, vertical handled dynamically */
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 0.6rem;
-  transition: max-height 0.4s ease, padding 0.4s ease;
+  transition: height 0.4s ease, padding 0.4s ease;
+  padding: 0 1rem;
 }
 
 .markscheme-viewer.open {
-  max-height: 300px;       /* adjust based on expected content */
-  padding: 1rem;           /* restore vertical padding when open */
+  padding: 1rem;
+  height: auto; 
 }
-
-
 
 /* Footer */
 .footer {

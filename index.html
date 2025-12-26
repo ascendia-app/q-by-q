@@ -7,66 +7,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+  
 
-  <!-- Header -->
-  <header class="header">
+<header class="header">
+  <!-- Centered title -->
+  <div class="header-title">
     <h1>Q by Q</h1>
     <p>Past papers, one question at a time</p>
-  </header>
+  </div>
 
-  <!-- Paper Selection -->
-  <section class="paper-selection">
-    <select>
-      <option>Select subject</option>
-    </select>
+  <!-- Timer on top right -->
+  <div class="header-timer">
+    <div id="timer">
+      <div class="time-box" id="hours">00</div>
+      <span class="colon">:</span>
+      <div class="time-box" id="minutes">00</div>
+      <span class="colon">:</span>
+      <div class="time-box" id="seconds">00</div>
+    </div>
+    <div class="timer-controls">
+      <button id="startTimer">Start</button>
+      <button id="pauseTimer">Pause</button>
+      <button id="resetTimer">Reset</button>
+    </div>
+  </div>
+</header>
 
-    <select>
-      <option>Select exam board</option>
-    </select>
 
-    <select>
-      <option>Select year</option>
-    </select>
 
-    <select>
-      <option>Select paper</option>
-    </select>
 
-    <button>Load paper</button>
-  </section>
+ <!-- Paper Selection -->
+<section class="paper-selection">
+  <!-- Subject -->
+  <select id="subjectSelect">
+    <option value="">Select subject</option>
+    <option value="9709">Mathematics 9709</option>
+  </select>
 
-  <!-- Main Viewer -->
+  <!-- Paper -->
+  <select id="paperSelect">
+    <option value="">Select paper</option>
+    <option value="pure1">1</option>
+    <option value="pure3">3</option>
+    <option value="mechanics">4</option>
+    <option value="stats1">5</option>
+  </select>
+
+  <!-- Year -->
+  <select id="yearSelect">
+    <option value="">Select year</option>
+    <option value="2025">2025</option>
+    <option value="2024">2024</option>
+  </select>
+
+  <!-- Season -->
+  <select id="seasonSelect">
+    <option value="">Select season</option>
+    <option value="febmar">Feb/March</option>
+    <option value="mayjun">May/June</option>
+    <option value="octnov">Oct/Nov</option>
+  </select>
+
+  <!-- Variant -->
+  <select id="variantSelect">
+    <option value="">Select variant</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+
+  <button id="loadPaperBtn">Load paper</button>
+</section>
+
+
 <main class="viewer">
 
   <!-- Sidebar -->
   <aside class="question-list" id="questionList">
+    <!-- Question buttons will be generated here -->
   </aside>
 
-  <!-- Question Area -->
+  <!-- Question display -->
   <section class="question-display">
-  <div class="question-header">
-    <h2 id="question-number">Question 1</h2>
-    <span class="marks" id="question-marks">5 marks</span>
-  </div>
-
-  <div class="question-content" id="question-content">
-    <p>Question content will appear here.</p>
-  </div>
-
-  <!-- Bottom Controls Row -->
-  <div class="controls-row">
-    <button class="primary" id="markSchemeBtn">Show Mark Scheme</button>
-    <div class="nav-buttons">
-      <button class="secondary" id="prevBtn">Previous</button>
-      <button class="secondary" id="nextBtn">Next</button>
+    <div class="question-header">
+      <h2 id="question-number">Question 1</h2>
     </div>
-  </div>
 
-  <!-- Mark Scheme Viewer -->
-  <div id="markSchemeViewer" class="markscheme-viewer">
-    <p>Mark scheme content will appear here.</p>
+<div class="question-container">
+  <button id="prevBtn" class="image-arrow left">&#9664;</button>
+  
+  <div id="question-content" class="question-content">
+    <!-- Dynamic question images will appear here -->
   </div>
-</section>
+  
+  <button id="nextBtn" class="image-arrow right">&#9654;</button>
+</div>
+
+<!-- Mark Scheme button centered below -->
+<div class="mark-btn-container">
+  <button class="primary" id="markSchemeBtn">Show Mark Scheme</button>
+</div>
+
+<div id="markSchemeViewer" class="markscheme-viewer">
+  <!-- Dynamic mark scheme images will appear here -->
+</div>
+
+
+  </section>
+
+</main>
+
 
 
   <!-- Footer -->
