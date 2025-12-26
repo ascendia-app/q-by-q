@@ -186,9 +186,10 @@ button.primary:hover {
 }
 
 .markscheme-viewer.open {
-  max-height: 200px;        /* adjust to expected content height */
-  padding: 1rem;            /* restore full padding when open */
+  max-height: 300px;       /* adjust based on expected content */
+  padding: 1rem;           /* restore vertical padding when open */
 }
+
 
 
 /* Footer */

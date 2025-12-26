@@ -64,5 +64,3 @@ markSchemeBtn.onclick = () => {
     ? "Hide Mark Scheme"
     : "Show Mark Scheme";
 };
-
-
