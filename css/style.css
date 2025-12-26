@@ -82,6 +82,7 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
+    min-height: 200px;
 }
 
 .question-btn {

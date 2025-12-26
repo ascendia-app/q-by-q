@@ -57,3 +57,5 @@ function renderQuestion() {
   renderQuestionList();
 }
 
+renderQuestion();
+renderQuestionList();
