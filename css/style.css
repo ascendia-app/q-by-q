@@ -99,17 +99,16 @@ body {
   color: white;
   border: none;
 }
-
 .question-display {
-  background: white;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 400px; /* adjust as needed */
-  margin: 1rem;
+  justify-content: flex-start; /* content flows top-down */
+  height: 450px; /* slightly taller for better spacing */
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  position: relative; /* allows absolute positioning if needed */
 }
 
 .question-header {
@@ -117,10 +116,11 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
 .question-content {
-  flex: 1; /* takes the middle space */
+  flex: 1; /* takes all middle space */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,38 +130,42 @@ body {
 
 .controls {
   display: flex;
-  justify-content: space-between;
-  margin-top: 1.5rem;
+  justify-content: flex-end; /* align to right */
+  gap: 1rem;
+  margin-top: auto; /* pushes buttons to the bottom */
 }
 
+/* Gradient-themed buttons */
 button.secondary {
-  background: #a2d5c6; /* soft ocean green */
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  color: white;
   border: none;
   padding: 0.5rem 1.2rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
+  border-radius: 0.6rem;
   font-weight: bold;
+  cursor: pointer;
   transition: 0.3s;
 }
 
 button.secondary:hover {
-  background: #81c7b8;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
 }
 
 button.primary {
-  background: #4daaaa; /* darker ocean blue-green */
+  background: linear-gradient(135deg, var(--blue), var(--teal));
   color: white;
   border: none;
   padding: 0.5rem 1.2rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
+  border-radius: 0.6rem;
   font-weight: bold;
+  cursor: pointer;
   transition: 0.3s;
 }
 
 button.primary:hover {
-  background: #378080;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
 }
+
 
 /* Footer */
 .footer {
