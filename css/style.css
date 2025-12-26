@@ -297,3 +297,117 @@ button.primary:hover {
   color: #64748b;
   font-size: 0.85rem;
 }
+/* =========================
+   RESPONSIVE DESIGN
+   ========================= */
+
+/* Tablets and smaller */
+@media (max-width: 900px) {
+
+  .viewer {
+    grid-template-columns: 1fr; /* remove sidebar column */
+    gap: 1rem;
+  }
+
+  .question-list {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    overflow-x: auto;
+  }
+
+  .question-btn {
+    flex-shrink: 0;
+  }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+
+  /* Header layout */
+  .header {
+    padding: 1rem;
+  }
+
+  .header-title h1 {
+    font-size: 2rem;
+  }
+
+  .header-title p {
+    font-size: 0.85rem;
+  }
+
+  /* Timer moves below title and centers */
+  .header-timer {
+    position: static;
+    margin-top: 1rem;
+    align-items: center;
+  }
+
+  #timer {
+    gap: 0.2rem;
+  }
+
+  .time-box {
+    font-size: 1.2rem;
+    min-width: 42px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .timer-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Paper selection */
+  .paper-selection {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+
+  .paper-selection select,
+  .paper-selection button {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* Question display */
+  .question-display {
+    padding: 1rem;
+  }
+
+  .question-header {
+    justify-content: center;
+  }
+
+  /* Image + arrows */
+  .question-container {
+    gap: 0.5rem;
+  }
+
+  .image-arrow {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+
+  /* Images scale naturally */
+  .question-image,
+  .markscheme-image {
+    max-width: 100%;
+    max-height: 70vh;
+  }
+
+  /* Markscheme button */
+  button.primary {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 1.5rem 1rem;
+  }
+}
