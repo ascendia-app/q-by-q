@@ -132,14 +132,15 @@ body {
 .controls-row {
   display: flex;
   justify-content: space-between; /* left/right alignment */
-  align-items: center;
-  margin-top: auto; /* stick to bottom of question box */
+  align-items: center;             /* vertically centered */
+  width: 100%;                     /* full width of question box */
+  margin-top: auto;                /* stick to bottom */
   gap: 1rem;
 }
 
 .nav-buttons {
   display: flex;
-  gap: 1rem; /* spacing between Previous/Next */
+  gap: 1rem;                       /* space between Previous/Next */
 }
 
 /* Gradient-themed buttons */
