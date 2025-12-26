@@ -60,9 +60,8 @@ const markSchemeViewer = document.getElementById("markSchemeViewer");
 
 markSchemeBtn.onclick = () => {
   markSchemeViewer.classList.toggle("open");
-  if (markSchemeViewer.classList.contains("open")) {
-    markSchemeBtn.textContent = "Hide Mark Scheme";
-  } else {
-    markSchemeBtn.textContent = "Show Mark Scheme";
-  }
+  markSchemeBtn.textContent = markSchemeViewer.classList.contains("open")
+    ? "Hide Mark Scheme"
+    : "Show Mark Scheme";
 };
+

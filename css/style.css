@@ -129,11 +129,17 @@ body {
 }
 
 
-.controls {
+.controls-row {
   display: flex;
-  justify-content: flex-end; /* align to right */
+  justify-content: space-between; /* left/right alignment */
+  align-items: center;
+  margin-top: auto; /* stick to bottom of question box */
   gap: 1rem;
-  margin-top: auto; /* pushes buttons to the bottom */
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 1rem; /* spacing between Previous/Next */
 }
 
 /* Gradient-themed buttons */
