@@ -55,3 +55,14 @@ document.addEventListener("DOMContentLoaded", () => {
   renderQuestion();
 
 });
+const markSchemeBtn = document.getElementById("markSchemeBtn");
+const markSchemeViewer = document.getElementById("markSchemeViewer");
+
+markSchemeBtn.onclick = () => {
+  markSchemeViewer.classList.toggle("open");
+  if (markSchemeViewer.classList.contains("open")) {
+    markSchemeBtn.textContent = "Hide Mark Scheme";
+  } else {
+    markSchemeBtn.textContent = "Show Mark Scheme";
+  }
+};

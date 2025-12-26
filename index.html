@@ -36,31 +36,41 @@
   </section>
 
   <!-- Main Viewer -->
-  <main class="viewer">
+<main class="viewer">
 
-    <!-- Sidebar -->
-<aside class="question-list" id="questionList">
-</aside>
+  <!-- Sidebar -->
+  <aside class="question-list" id="questionList">
+  </aside>
 
+  <!-- Question Area -->
+  <section class="question-display">
+    <div class="question-header">
+      <h2 id="question-number">Question 1</h2>
+      <span class="marks" id="question-marks">5 marks</span>
+    </div>
 
+    <div class="question-content" id="question-content">
+      <p>Question content will appear here.</p>
+    </div>
 
-    <!-- Question Area -->
-<section class="question-display">
-  <div class="question-header">
-    <h2 id="question-number">Question 1</h2>
-    <span class="marks" id="question-marks">5 marks</span>
-  </div>
+    <!-- Controls Container -->
+    <div class="controls-container">
+      <div class="controls-left">
+        <button class="primary" id="markSchemeBtn">Show Mark Scheme</button>
+      </div>
+      <div class="controls-right">
+        <button class="secondary" id="prevBtn">Previous</button>
+        <button class="secondary" id="nextBtn">Next</button>
+      </div>
+    </div>
 
-  <div class="question-content" id="question-content">
-    <p>Question content will appear here.</p>
-  </div>
+    <!-- Mark Scheme Viewer -->
+    <div id="markSchemeViewer" class="markscheme-viewer">
+      <p>Mark scheme content will appear here.</p>
+    </div>
+  </section>
 
-  <div class="controls">
-    <button class="secondary" id="prevBtn">Previous</button>
-    <button class="secondary" id="nextBtn">Next</button>
-    <button class="primary">Mark scheme</button>
-  </div>
-</section>
+</main>
 
   <!-- Footer -->
   <footer class="footer">
