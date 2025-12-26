@@ -1,13 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  const questions = [
-    { number: 1, marks: 5, content: "This is Question 1. Question content goes here." },
-    { number: 2, marks: 8, content: "This is Question 2. Question content goes here." },
-    { number: 3, marks: 6, content: "This is Question 3. Question content goes here." }
-  ];
-
-  let currentIndex = 0;
-
   const questionNumberEl = document.getElementById("question-number");
   const questionMarksEl = document.getElementById("question-marks");
   const questionContentEl = document.getElementById("question-content");
@@ -15,23 +7,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextBtn = document.getElementById("nextBtn");
   const questionList = document.getElementById("questionList");
 
+  const questions = [
+    { number: 1, marks: 5, content: "This is Question 1" },
+    { number: 2, marks: 8, content: "This is Question 2" },
+    { number: 3, marks: 6, content: "This is Question 3" }
+  ];
+
+  let currentIndex = 0;
+
   function renderQuestionList() {
     questionList.innerHTML = "";
-
     questions.forEach((q, index) => {
       const btn = document.createElement("button");
       btn.textContent = q.number;
       btn.className = "question-btn";
-
-      if (index === currentIndex) {
-        btn.classList.add("active");
-      }
-
+      if (index === currentIndex) btn.classList.add("active");
       btn.onclick = () => {
         currentIndex = index;
         renderQuestion();
       };
-
       questionList.appendChild(btn);
     });
   }
