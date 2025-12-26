@@ -24,26 +24,36 @@ const questionContentEl = document.getElementById("question-content");
 
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+const questionList = document.getElementById("questionList");
+function renderQuestionList() {
+  questionList.innerHTML = "";
+
+  questions.forEach((q, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = q.number;
+    btn.classList.add("question-btn");
+
+    if (index === currentIndex) {
+      btn.classList.add("active");
+    }
+
+    btn.addEventListener("click", () => {
+      currentIndex = index;
+      renderQuestion();
+      renderQuestionList();
+    });
+
+    questionList.appendChild(btn);
+  });
+}
+
 
 function renderQuestion() {
   const q = questions[currentIndex];
   questionNumberEl.textContent = `Question ${q.number}`;
   questionMarksEl.textContent = `${q.marks} marks`;
   questionContentEl.innerHTML = `<p>${q.content}</p>`;
+
+  renderQuestionList();
 }
 
-prevBtn.addEventListener("click", () => {
-  if (currentIndex > 0) {
-    currentIndex--;
-    renderQuestion();
-  }
-});
-
-nextBtn.addEventListener("click", () => {
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
-renderQuestion();
