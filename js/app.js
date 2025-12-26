@@ -1,3 +1,5 @@
+console.log("questionList:", questionList);
+
 const questions = [
   {
     number: 1,
@@ -48,8 +50,30 @@ function renderQuestionList() {
 }
 
 
+function renderQuestionList() {
+  questionList.innerHTML = "";
+
+  questions.forEach((q, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = q.number;
+    btn.className = "question-btn";
+
+    if (index === currentIndex) {
+      btn.classList.add("active");
+    }
+
+    btn.onclick = () => {
+      currentIndex = index;
+      renderQuestion();
+    };
+
+    questionList.appendChild(btn);
+  });
+}
+
 function renderQuestion() {
   const q = questions[currentIndex];
+
   questionNumberEl.textContent = `Question ${q.number}`;
   questionMarksEl.textContent = `${q.marks} marks`;
   questionContentEl.innerHTML = `<p>${q.content}</p>`;
@@ -58,4 +82,4 @@ function renderQuestion() {
 }
 
 renderQuestion();
-renderQuestionList();
+
