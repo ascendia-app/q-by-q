@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         signupBtn.disabled = true;
 
         try {
-            const res = await fetch("hhttps://q-by-q.vercel.app/api/auth/signup", {
+            const res = await fetch(`${API_BASE_URL}/auth/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password })

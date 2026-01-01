@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const res = await fetch("https://q-by-q.vercel.app/api/dashboard/dashboard-data", {
+   const res = await fetch(`${API_BASE_URL}/dashboard/dashboard-data`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await res.json();

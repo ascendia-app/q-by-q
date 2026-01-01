@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ... existing code ...
 try {
     // Port changed from 5000 to 5050 to match your server.js
-const res = await fetch("https://q-by-q.vercel.app/api/auth/login", { 
+const res = await fetch(`${API_BASE_URL}/auth/login`, { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
