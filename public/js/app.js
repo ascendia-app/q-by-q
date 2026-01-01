@@ -1,7 +1,16 @@
 /* =========================================
    1. AUTHENTICATION & GLOBAL STATE
    ========================================= */
-let questions = [];
+const urlParams = new URLSearchParams(window.location.search);
+const resumePaper = urlParams.get('paper');
+const resumeYear = urlParams.get('year');
+const resumeQ = urlParams.get('q');
+
+if (resumePaper && resumeYear) {
+    // Logic to automatically trigger your "Fetch Questions" function
+    // using these values and jumping to index resumeQ
+}
+   let questions = [];
 let currentIndex = 0;
 let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
 

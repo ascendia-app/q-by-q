@@ -9,8 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userEmailDisplay = document.getElementById("userEmail");
     const authBtn = document.getElementById("authTopBtn");
     const dateDisplay = document.getElementById('currentDate');
-    const lastPaperDisplay = document.getElementById("lastPaperText");
+    const lastPaperDisplay = document.getElementById("lastPaperText"); // This is where "Recent Activity" goes
     const totalTimeDisplay = document.getElementById("totalTime");
+    const resumeBtn = document.querySelector(".btn-full"); // Selects the 'Resume Studying' button
 
     // Modals
     const logoutModal = document.getElementById('logoutModal');
@@ -47,27 +48,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (res.ok) {
             const data = await res.json();
-            console.log("Data received:", data);
-            
-            // Check if backend sends { user: { email } } or just { email }
             if (userEmailDisplay) {
                 userEmailDisplay.textContent = data.user?.email || data.email || "User Account";
             }
         } else if (res.status === 401 || res.status === 403) {
-            console.error("Session expired or unauthorized.");
             localStorage.removeItem("token");
             window.location.href = "pleaselogin.html";
-        } else {
-            const errorData = await res.json();
-            console.error("Backend error message:", errorData.message);
-            if (userEmailDisplay) userEmailDisplay.textContent = "Error loading user";
         }
     } catch (err) {
         console.error("Network or Server error:", err);
         if (userEmailDisplay) userEmailDisplay.textContent = "Server Offline";
     }
 
-    // --- 5. TIMER & LOCALSTORAGE LOGIC ---
+    // --- 5. TIMER & RECENT ACTIVITY LOGIC ---
+    
+    // Timer Interval Logic
     const updateDashboardTimer = () => {
         const lifetimeSeconds = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
         const timerData = JSON.parse(localStorage.getItem("timerTime") || '{"h":0,"m":0,"s":0,"running":false}');
@@ -89,10 +84,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     setInterval(updateDashboardTimer, 1000);
     updateDashboardTimer();
 
-    // Load last paper from local storage
+    // --- RECENT ACTIVITY REDIRECT LOGIC ---
+    // This looks for 'lastPaper' saved by your practice/index page
     const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
-    if (lastPaper && lastPaperDisplay) {
-        lastPaperDisplay.textContent = `${lastPaper.paper} (${lastPaper.year})`;
+
+    if (lastPaper && lastPaper.paper && lastPaper.year) {
+        // Format the name for display (e.g., "Paper1 (2023)")
+        const formattedName = lastPaper.paper.charAt(0).toUpperCase() + lastPaper.paper.slice(1);
+        const qNum = (lastPaper.questionIndex !== undefined) ? ` - Q${lastPaper.questionIndex + 1}` : "";
+        
+        if (lastPaperDisplay) {
+            lastPaperDisplay.innerHTML = `<span style="color: #3498db;">${formattedName}</span> ${lastPaper.year}${qNum}`;
+        }
+
+        // Update the Resume Button to go to specific question
+        if (resumeBtn) {
+            resumeBtn.onclick = () => {
+                // We pass the data via URL parameters so index.html knows what to load
+                window.location.href = `index.html?paper=${lastPaper.paper}&year=${lastPaper.year}&q=${lastPaper.questionIndex || 0}`;
+            };
+            resumeBtn.textContent = "Continue Last Session";
+        }
+    } else {
+        if (lastPaperDisplay) lastPaperDisplay.textContent = "No Recent Activity";
+        if (resumeBtn) {
+            resumeBtn.onclick = () => window.location.href = 'index.html';
+            resumeBtn.textContent = "Start Practice";
+        }
     }
 
     // --- 6. EVENT LISTENERS (Modals) ---
@@ -108,7 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (confirmReset) confirmReset.onclick = () => {
         localStorage.removeItem("lifetimeStudySeconds");
         localStorage.removeItem("timerTime");
+        localStorage.removeItem("lastPaper"); // Also clear activity on reset
         updateDashboardTimer();
+        if (lastPaperDisplay) lastPaperDisplay.textContent = "No Recent Activity";
         resetModal.style.display = 'none';
     };
 
