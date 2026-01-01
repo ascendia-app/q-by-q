@@ -1,3 +1,4 @@
+const API_BASE_URL = "https://q-by-q.vercel.app/api";
 document.addEventListener("DOMContentLoaded", async () => {
     // --- 1. DOM ELEMENTS ---
     const token = localStorage.getItem("token");
@@ -31,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/dashboard/dashboard-data", {
+        const res = await fetch("https://q-by-q.vercel.app/api/dashboard/dashboard-data", {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await res.json();

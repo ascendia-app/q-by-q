@@ -1,3 +1,4 @@
+const API_BASE_URL = "https://q-by-q.vercel.app/api";
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
     const errorBanner = document.getElementById("errorMessage");
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ... existing code ...
 try {
     // Port changed from 5000 to 5050 to match your server.js
-const res = await fetch("http://localhost:5000/api/auth/login", { 
+const res = await fetch("https://q-by-q.vercel.app/api/auth/login", { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
