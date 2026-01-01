@@ -1,19 +1,21 @@
-const API_BASE_URL = "https://q-by-q.vercel.app/api";
+// Use the current domain + /api to avoid hardcoding issues
+const API_BASE_URL = window.location.origin + "/api";
+
 document.addEventListener("DOMContentLoaded", async () => {
+    console.log("Dashboard loaded. API Base:", API_BASE_URL);
+
     // --- 1. DOM ELEMENTS ---
     const token = localStorage.getItem("token");
-    const authBtn = document.getElementById("authTopBtn");
     const userEmailDisplay = document.getElementById("userEmail");
+    const authBtn = document.getElementById("authTopBtn");
     const dateDisplay = document.getElementById('currentDate');
     const lastPaperDisplay = document.getElementById("lastPaperText");
     const totalTimeDisplay = document.getElementById("totalTime");
 
-    // Modal Elements (Logout)
+    // Modals
     const logoutModal = document.getElementById('logoutModal');
     const confirmLogout = document.getElementById('confirmLogout');
     const cancelLogout = document.getElementById('cancelLogout');
-
-    // Modal Elements (Reset)
     const resetModal = document.getElementById("resetModal");
     const totalResetBtn = document.getElementById("totalResetBtn");
     const confirmReset = document.getElementById("confirmReset");
@@ -21,117 +23,96 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 2. AUTH GUARD ---
     if (!token) {
+        console.warn("No token found. Redirecting...");
         window.location.href = "pleaselogin.html";
         return;
     }
 
-    // --- 3. UI INITIALIZATION (Date & User) ---
+    // --- 3. UI INITIALIZATION (Date) ---
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     if (dateDisplay) {
         dateDisplay.textContent = new Date().toLocaleDateString(undefined, options);
     }
 
+    // --- 4. FETCH USER DATA ---
     try {
-   const res = await fetch(`${API_BASE_URL}/dashboard/dashboard-data`, {
-            headers: { "Authorization": `Bearer ${token}` }
+        console.log("Attempting to fetch user data...");
+        const res = await fetch(`${API_BASE_URL}/dashboard/dashboard-data`, {
+            method: "GET",
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
         });
-        const data = await res.json();
-        if (res.ok && userEmailDisplay) {
-            userEmailDisplay.textContent = data.user.email;
-        } else if (res.status === 401) {
+
+        if (res.ok) {
+            const data = await res.json();
+            console.log("Data received:", data);
+            
+            // Check if backend sends { user: { email } } or just { email }
+            if (userEmailDisplay) {
+                userEmailDisplay.textContent = data.user?.email || data.email || "User Account";
+            }
+        } else if (res.status === 401 || res.status === 403) {
+            console.error("Session expired or unauthorized.");
             localStorage.removeItem("token");
             window.location.href = "pleaselogin.html";
+        } else {
+            const errorData = await res.json();
+            console.error("Backend error message:", errorData.message);
+            if (userEmailDisplay) userEmailDisplay.textContent = "Error loading user";
         }
     } catch (err) {
-        if (userEmailDisplay) userEmailDisplay.textContent = "Offline Mode";
+        console.error("Network or Server error:", err);
+        if (userEmailDisplay) userEmailDisplay.textContent = "Server Offline";
     }
 
-    // --- 4. LOAD LAST PAPER STATS ---
-    const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
-    if (lastPaper && lastPaperDisplay) {
-        const paperName = lastPaper.paper.charAt(0).toUpperCase() + 
-                          lastPaper.paper.slice(1).replace(/(\d)/, ' $1');
-        lastPaperDisplay.textContent = `${paperName} (${lastPaper.year})`;
-    }
-
-    // --- 5. PERSISTENT TICKING TIMER LOGIC ---
+    // --- 5. TIMER & LOCALSTORAGE LOGIC ---
     const updateDashboardTimer = () => {
-        // Get banked "lifetime" seconds
         const lifetimeSeconds = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
+        const timerData = JSON.parse(localStorage.getItem("timerTime") || '{"h":0,"m":0,"s":0,"running":false}');
         
-        // Get active session data
-        const data = JSON.parse(localStorage.getItem("timerTime")) || { h: 0, m: 0, s: 0, startTime: null, running: false };
-        
-        // Calculate session seconds (base time + live elapsed if running)
-        let sessionSeconds = (data.h * 3600) + (data.m * 60) + data.s;
-        if (data.running && data.startTime) {
-            const elapsedSinceStart = Math.floor((Date.now() - data.startTime) / 1000);
-            sessionSeconds += elapsedSinceStart;
+        let sessionSeconds = (timerData.h * 3600) + (timerData.m * 60) + timerData.s;
+        if (timerData.running && timerData.startTime) {
+            const elapsed = Math.floor((Date.now() - timerData.startTime) / 1000);
+            sessionSeconds += elapsed;
         }
 
-        const totalSeconds = lifetimeSeconds + sessionSeconds;
+        const total = lifetimeSeconds + sessionSeconds;
+        const h = String(Math.floor(total / 3600)).padStart(2, '0');
+        const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+        const s = String(total % 60).padStart(2, '0');
 
-        // Convert to HH:MM:SS
-        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-        const s = String(totalSeconds % 60).padStart(2, '0');
-
-        if (totalTimeDisplay) {
-            totalTimeDisplay.textContent = `${h}:${m}:${s}`;
-        }
+        if (totalTimeDisplay) totalTimeDisplay.textContent = `${h}:${m}:${s}`;
     };
 
-    // Start the interval immediately
-    updateDashboardTimer();
     setInterval(updateDashboardTimer, 1000);
+    updateDashboardTimer();
 
-    // --- 6. LOGOUT MODAL LOGIC ---
-    if (authBtn) {
-        authBtn.onclick = (e) => {
-            e.preventDefault();
-            if (logoutModal) logoutModal.style.display = 'flex';
-        };
+    // Load last paper from local storage
+    const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
+    if (lastPaper && lastPaperDisplay) {
+        lastPaperDisplay.textContent = `${lastPaper.paper} (${lastPaper.year})`;
     }
 
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
-        };
-    }
+    // --- 6. EVENT LISTENERS (Modals) ---
+    if (authBtn) authBtn.onclick = (e) => { e.preventDefault(); logoutModal.style.display = 'flex'; };
+    if (cancelLogout) cancelLogout.onclick = () => { logoutModal.style.display = 'none'; };
+    if (confirmLogout) confirmLogout.onclick = () => { 
+        localStorage.removeItem("token"); 
+        window.location.href = "pleaselogin.html"; 
+    };
 
-    if (cancelLogout) {
-        cancelLogout.onclick = () => {
-            logoutModal.style.display = 'none';
-        };
-    }
+    if (totalResetBtn) totalResetBtn.onclick = () => { resetModal.style.display = 'flex'; };
+    if (cancelReset) cancelReset.onclick = () => { resetModal.style.display = 'none'; };
+    if (confirmReset) confirmReset.onclick = () => {
+        localStorage.removeItem("lifetimeStudySeconds");
+        localStorage.removeItem("timerTime");
+        updateDashboardTimer();
+        resetModal.style.display = 'none';
+    };
 
-    // --- 7. TOTAL RESET MODAL LOGIC ---
-    if (totalResetBtn) {
-        totalResetBtn.onclick = () => {
-            if (resetModal) resetModal.style.display = 'flex';
-        };
-    }
-
-    if (confirmReset) {
-        confirmReset.onclick = () => {
-            // Wipe all time-related storage
-            localStorage.removeItem("lifetimeStudySeconds");
-            localStorage.removeItem("timerTime");
-            
-            // Instantly update UI and close
-            updateDashboardTimer();
-            if (resetModal) resetModal.style.display = 'none';
-        };
-    }
-
-    if (cancelReset) {
-        cancelReset.onclick = () => {
-            if (resetModal) resetModal.style.display = 'none';
-        };
-    }
-
-    // --- 8. GLOBAL MODAL CLICK-OUTSIDE ---
+    // Close on outside click
     window.onclick = (event) => {
         if (event.target === logoutModal) logoutModal.style.display = 'none';
         if (event.target === resetModal) resetModal.style.display = 'none';
