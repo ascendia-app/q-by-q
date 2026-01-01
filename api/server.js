@@ -17,9 +17,10 @@ app.get("/", (req, res) => {
 
 // --- API ROUTES ---
 // Add an extra dot to go UP one folder to find the routes
-const authRoutes = require("../routes/auth");
-const dashboardRoutes = require("../routes/dashboard");
-
+// --- API ROUTES ---
+// Corrected: Use "./" because the routes folder is INSIDE the api folder
+const authRoutes = require("./routes/auth");
+const dashboardRoutes = require("./routes/dashboard");
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
