@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Questions · Q by Q</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">Q by Q</div>
+            
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i> <span>Dashboard</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-book"></i> <span>Practice</span>
+                </a>
+                <a href="saved.html" class="nav-item active">
+                    <i class="fas fa-bookmark"></i> <span>Saved</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="authTopBtn" class="auth-btn logout-state">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+               <div class="header-title">
+                    <h2 style="margin:0; font-size: 1.2rem;">Saved Questions</h2>
+                </div>
+                <div class="header-timer">
+                    <button id="clearAllBtn" class="reset-danger-btn">
+                        <i class="fas fa-trash-alt"></i> Clear All
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <div id="emptyState" class="gate-card" style="display:none; margin: 100px auto; max-width: 400px; text-align: center;">
+                    <div class="gate-icon-circle" style="margin: 0 auto 1.5rem; background: #f1f5f9; color: #94a3b8;">
+                        <i class="far fa-bookmark"></i>
+                    </div>
+                    <h2 class="gate-title">Library Empty</h2>
+                    <p class="gate-description">Start practicing and bookmark questions for future review. Your saved questions will appear here.</p>
+                </div>
+
+                <div id="savedGrid" class="dashboard-grid">
+                    </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="previewModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle" class="gate-title" style="text-align: left; font-size: 1.5rem;">Question Details</h2>
+            </div>
+            <div class="modal-body">
+                <div id="modalImages" class="question-content"></div>
+                <div class="mark-btn-container" style="margin-top: 20px;">
+                    <button id="toggleModalMS" class="btn-gate">Show Mark Scheme</button>
+                </div>
+                <div id="modalMS" class="markscheme-viewer" style="display:none; margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="clearAllModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 5px solid #ef4444;">
+            <div class="gate-icon-circle" style="background: #fee2e2; color: #ef4444; margin: 0 auto 1.5rem;">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h2 class="gate-title" style="font-size: 1.5rem;">Clear All Saved?</h2>
+            <p class="gate-description">This will permanently remove all bookmarked questions from your list. This action cannot be undone.</p>
+            
+            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                <button id="cancelClearBtn" class="btn-gate" style="background: #f1f5f9; color: #475569;">Cancel</button>
+                <button id="confirmClearBtn" class="btn-gate" style="background: #ef4444; color: white;">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/saved.js"></script>
+</body>
+</html>
