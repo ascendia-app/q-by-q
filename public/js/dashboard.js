@@ -9,9 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userEmailDisplay = document.getElementById("userEmail");
     const authBtn = document.getElementById("authTopBtn");
     const dateDisplay = document.getElementById('currentDate');
-    const lastPaperDisplay = document.getElementById("lastPaperText"); // This is where "Recent Activity" goes
+    const lastPaperDisplay = document.getElementById("lastPaperText"); 
     const totalTimeDisplay = document.getElementById("totalTime");
-    const resumeBtn = document.querySelector(".btn-full"); // Selects the 'Resume Studying' button
+    const resumeBtn = document.querySelector(".btn-full"); 
 
     // Modals
     const logoutModal = document.getElementById('logoutModal');
@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 4. FETCH USER DATA ---
     try {
-        console.log("Attempting to fetch user data...");
         const res = await fetch(`${API_BASE_URL}/dashboard/dashboard-data`, {
             method: "GET",
             headers: { 
@@ -60,9 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (userEmailDisplay) userEmailDisplay.textContent = "Server Offline";
     }
 
-    // --- 5. TIMER & RECENT ACTIVITY LOGIC ---
-    
-    // Timer Interval Logic
+    // --- 5. TIMER LOGIC ---
     const updateDashboardTimer = () => {
         const lifetimeSeconds = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
         const timerData = JSON.parse(localStorage.getItem("timerTime") || '{"h":0,"m":0,"s":0,"running":false}');
@@ -84,24 +81,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     setInterval(updateDashboardTimer, 1000);
     updateDashboardTimer();
 
-    // --- RECENT ACTIVITY REDIRECT LOGIC ---
-    // This looks for 'lastPaper' saved by your practice/index page
+    // --- 6. RECENT ACTIVITY PRETTIFIER & REDIRECT ---
     const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
 
-    if (lastPaper && lastPaper.paper && lastPaper.year) {
-        // Format the name for display (e.g., "Paper1 (2023)")
-        const formattedName = lastPaper.paper.charAt(0).toUpperCase() + lastPaper.paper.slice(1);
+    if (lastPaper && lastPaper.paper) {
+        // --- PRETTIFY LOGIC ---
+        // 1. Component (pure3 -> Pure 3)
+        const rawComp = lastPaper.paper || "";
+        const formattedComp = rawComp.replace(/([a-zA-Z]+)(\d+)/, (match, p1, p2) => {
+            return p1.charAt(0).toUpperCase() + p1.slice(1) + " " + p2;
+        });
+
+        // 2. Series (m_j -> May/June)
+        const seriesMap = {
+            'm_j': 'May/June',
+            'o_n': 'Oct/Nov',
+            'f_m': 'Feb/March'
+        };
+        const formattedSeries = seriesMap[lastPaper.series] || lastPaper.series || "";
+
+        // 3. Variant (v2 -> Var 2)
+        const formattedVar = lastPaper.variant ? lastPaper.variant.replace('v', 'Var ') : "";
+
+        // 4. Combine into: Pure 3 | May/June 2024 | Var 2
+        const displayParts = [];
+        if (formattedComp) displayParts.push(formattedComp);
+        if (formattedSeries || lastPaper.year) displayParts.push(`${formattedSeries} ${lastPaper.year}`.trim());
+        if (formattedVar) displayParts.push(formattedVar);
+
+        const finalDisplayStr = displayParts.join(' | ');
         const qNum = (lastPaper.questionIndex !== undefined) ? ` - Q${lastPaper.questionIndex + 1}` : "";
         
         if (lastPaperDisplay) {
-            lastPaperDisplay.innerHTML = `<span style="color: #3498db;">${formattedName}</span> ${lastPaper.year}${qNum}`;
+            lastPaperDisplay.innerHTML = `<span style="color: #3498db; font-weight: 600;">${finalDisplayStr}</span>${qNum}`;
         }
 
-        // Update the Resume Button to go to specific question
+        // --- RESUME LOGIC ---
         if (resumeBtn) {
             resumeBtn.onclick = () => {
-                // We pass the data via URL parameters so index.html knows what to load
-                window.location.href = `index.html?paper=${lastPaper.paper}&year=${lastPaper.year}&q=${lastPaper.questionIndex || 0}`;
+                const params = new URLSearchParams({
+                    paper: lastPaper.paper,
+                    year: lastPaper.year,
+                    series: lastPaper.series || "",
+                    variant: lastPaper.variant || "",
+                    q: lastPaper.questionIndex || 0
+                });
+                window.location.href = `index.html?${params.toString()}`;
             };
             resumeBtn.textContent = "Continue Last Session";
         }
@@ -113,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // --- 6. EVENT LISTENERS (Modals) ---
+    // --- 7. EVENT LISTENERS (Modals) ---
     if (authBtn) authBtn.onclick = (e) => { e.preventDefault(); logoutModal.style.display = 'flex'; };
     if (cancelLogout) cancelLogout.onclick = () => { logoutModal.style.display = 'none'; };
     if (confirmLogout) confirmLogout.onclick = () => { 
@@ -126,13 +151,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (confirmReset) confirmReset.onclick = () => {
         localStorage.removeItem("lifetimeStudySeconds");
         localStorage.removeItem("timerTime");
-        localStorage.removeItem("lastPaper"); // Also clear activity on reset
+        localStorage.removeItem("lastPaper"); 
         updateDashboardTimer();
         if (lastPaperDisplay) lastPaperDisplay.textContent = "No Recent Activity";
         resetModal.style.display = 'none';
     };
 
-    // Close on outside click
     window.onclick = (event) => {
         if (event.target === logoutModal) logoutModal.style.display = 'none';
         if (event.target === resetModal) resetModal.style.display = 'none';
