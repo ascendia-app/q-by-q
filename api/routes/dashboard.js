@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 // Add two dots and a slash before the word middleware
-const auth = require("../middleware/authMiddleware.js");
-const User = require("../models/User.js");
+const auth = require("../../backend/middleware/authMiddleware.js");
+const User = require("../../backend/models/User.js");
 
 /**
  * @route   GET /api/dashboard/dashboard-data

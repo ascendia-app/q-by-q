@@ -16,8 +16,9 @@ app.get("/", (req, res) => {
 });
 
 // --- API ROUTES ---
-const authRoutes = require("./routes/auth");
-const dashboardRoutes = require("./routes/dashboard"); 
+// Add an extra dot to go UP one folder to find the routes
+const authRoutes = require("../routes/auth");
+const dashboardRoutes = require("../routes/dashboard");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
