@@ -2,7 +2,7 @@
   "name": "q-by-q-backend",
   "version": "1.0.0",
   "description": "Backend for Q-by-Q App",
-  "main": "server.js",
+"main": "api/server.js",
   "engines": {
     "node": "24.x"
   },
