@@ -4,13 +4,11 @@
 const urlParams = new URLSearchParams(window.location.search);
 const resumePaper = urlParams.get('paper');
 const resumeYear = urlParams.get('year');
+const resumeSeries = urlParams.get('series'); // Added for dashboard format
+const resumeVariant = urlParams.get('variant'); // Added for dashboard format
 const resumeQ = urlParams.get('q');
 
-if (resumePaper && resumeYear) {
-    // Logic to automatically trigger your "Fetch Questions" function
-    // using these values and jumping to index resumeQ
-}
-   let questions = [];
+let questions = [];
 let currentIndex = 0;
 let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
 
@@ -28,7 +26,8 @@ async function checkAuth() {
     }
 
     try {
-     const res = await fetch("https://q-by-q.vercel.app/api/auth/signup", {
+        // Corrected to dashboard endpoint for a simple check
+        const res = await fetch("https://q-by-q.vercel.app/api/dashboard/dashboard-data", {
             headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -65,23 +64,22 @@ function updateSidebarAuthBtn(isLoggedIn) {
    ========================================= */
 document.addEventListener("DOMContentLoaded", () => {
     checkAuth();
-// --- Place this directly inside your document.addEventListener("DOMContentLoaded", () => { ---
 
-const notFoundModal = document.getElementById('notFoundModal');
-const closeNotFound = document.getElementById('closeNotFound');
+    const notFoundModal = document.getElementById('notFoundModal');
+    const closeNotFound = document.getElementById('closeNotFound');
 
-if (closeNotFound && notFoundModal) {
-    closeNotFound.onclick = () => {
-        notFoundModal.style.display = 'none';
-    };
-}
-
-// Also close if the user clicks the dark background outside the modal
-window.addEventListener('click', (e) => {
-    if (e.target === notFoundModal) {
-        notFoundModal.style.display = 'none';
+    if (closeNotFound && notFoundModal) {
+        closeNotFound.onclick = () => {
+            notFoundModal.style.display = 'none';
+        };
     }
-});
+
+    window.addEventListener('click', (e) => {
+        if (e.target === notFoundModal) {
+            notFoundModal.style.display = 'none';
+        }
+    });
+
     // UI Elements
     const questionNumberEl = document.getElementById("question-number");
     const questionContentEl = document.getElementById("question-content");
@@ -221,13 +219,18 @@ window.addEventListener('click', (e) => {
         saveState();
     }
 
+    // UPDATED SAVE STATE FOR DASHBOARD FORMAT
     function saveState() {
         if (!subjectSelect.value) return;
         const state = {
-            subject: subjectSelect.value, paper: paperSelect.value,
-            year: yearSelect.value, season: seasonSelect.value,
-            variant: variantSelect.value, currentIndex
+            subject: subjectSelect.value, 
+            paper: paperSelect.value,
+            year: yearSelect.value, 
+            series: seasonSelect.value, // Maps to 'm_j' etc for dashboard
+            variant: "v" + variantSelect.value, // Maps to 'v2' for dashboard
+            currentIndex: currentIndex
         };
+        // This is the key the dashboard reads
         localStorage.setItem("lastPaper", JSON.stringify(state));
     }
 
@@ -275,8 +278,12 @@ window.addEventListener('click', (e) => {
                             if(modal) modal.style.display = 'flex';
                             return; 
                         }
+                        
+                        // Handle Jump from Dashboard URL or LocalStorage
                         const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
-                        if (jumpTo) {
+                        if (resumeQ !== null) {
+                            currentIndex = parseInt(resumeQ);
+                        } else if (jumpTo) {
                             const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
                             if (foundIndex !== -1) currentIndex = foundIndex;
                             localStorage.removeItem('jumpToQuestion');
@@ -329,19 +336,26 @@ window.addEventListener('click', (e) => {
         };
     }
 
-    // --- RECOVERY LOGIC ---
+    // --- RECOVERY & DASHBOARD RESUME LOGIC ---
     const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
-    const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
 
-    if (jumpTo || lastPaper) {
-        const data = jumpTo || lastPaper;
-        subjectSelect.value = data.subject || data.sub || "9709";
-        paperSelect.value = data.paper || data.pap || "pure1";
-        yearSelect.value = data.year || data.yr || "2024";
-        seasonSelect.value = data.season || data.sea || "mayjun";
+    // Prioritize URL params from Dashboard
+    if (resumePaper && resumeYear) {
+        subjectSelect.value = "9709"; // Default subject
+        paperSelect.value = resumePaper;
+        yearSelect.value = resumeYear;
+        seasonSelect.value = resumeSeries || "mayjun";
         applyVariantRule();
-        variantSelect.value = data.variant || data.varnt || "1";
-        if (!jumpTo) currentIndex = data.currentIndex || 0;
+        variantSelect.value = resumeVariant ? resumeVariant.replace('v', '') : "1";
+        loadPaperBtn.click();
+    } else if (lastPaper) {
+        subjectSelect.value = lastPaper.subject || "9709";
+        paperSelect.value = lastPaper.paper || "pure1";
+        yearSelect.value = lastPaper.year || "2024";
+        seasonSelect.value = lastPaper.series || "mayjun";
+        applyVariantRule();
+        variantSelect.value = lastPaper.variant ? lastPaper.variant.replace('v', '') : "1";
+        currentIndex = lastPaper.currentIndex || 0;
         loadPaperBtn.click();
     } else {
         applyVariantRule();
