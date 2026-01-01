@@ -23,33 +23,18 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // --- DATABASE CONNECTION ---
-// We connect to MongoDB before starting the server listener
-const PORT = process.env.PORT || 5000;
-
+// On Vercel, we connect to MongoDB without app.listen()
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log("✅ MongoDB Connected Successfully");
-        
-        // Only start the server once DB is connected
-        if (process.env.NODE_ENV !== 'test') {
-            app.listen(PORT, () => {
-                console.log(`🚀 Server is live at http://localhost:${PORT}`);
-            });
-        }
-    })
-    .catch(err => {
-        console.error("❌ MongoDB Connection Error:", err.message);
-        process.exit(1); // Stop the app if DB fails
-    });
+    .then(() => console.log("✅ MongoDB Connected Successfully"))
+    .catch(err => console.error("❌ MongoDB Connection Error:", err.message));
 
 // --- GLOBAL ERROR HANDLER ---
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).json({ 
-        msg: "Internal Server Error", 
-        error: process.env.NODE_ENV === 'development' ? err.message : "Something went wrong" 
+        msg: "Internal Server Error"
     });
 });
 
-// Required for Vercel deployment
+// CRITICAL: Export for Vercel
 module.exports = app;
