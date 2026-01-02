@@ -1778,3 +1778,139 @@ body.auth-page {
     font-weight: bold;
     color: #64748b;
 }
+/* =========================================
+   8. RESPONSIVE MEDIA QUERIES
+   ========================================= */
+
+/* --- Tablet & Small Laptops (Max 1024px) --- */
+@media (max-width: 1024px) {
+    .grid-layout {
+        grid-template-columns: repeat(2, 1fr); /* 2 cards per row instead of 3+ */
+    }
+    
+    .content-card {
+        max-width: 90%; /* Let the login card breathe on smaller tablets */
+    }
+}
+
+/* --- Mobile Phones (Max 768px) --- */
+@media (max-width: 768px) {
+    /* 1. Stack the Main App Layout */
+    .app-container {
+        flex-direction: column; /* Sidebar top/bottom, Content middle */
+    }
+
+    /* 2. Transform Sidebar into a Bottom Navigation Bar */
+    .sidebar {
+        width: 100% !important;
+        height: 65px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        flex-direction: row; /* Layout icons horizontally */
+        z-index: 1000;
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header, .sidebar-questions, .sidebar-logo, .nav-text {
+        display: none !important; /* Hide non-essential elements to save space */
+    }
+
+    .nav-links {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+        padding: 0;
+    }
+
+    .nav-item {
+        border-left: none;
+        border-bottom: 4px solid transparent; /* Indicators move to bottom */
+        height: 65px;
+        width: 25%;
+    }
+
+    .nav-item.active {
+        border-left: none;
+        border-bottom-color: var(--teal);
+    }
+
+    .sidebar-footer {
+        width: auto;
+        border-top: none;
+        padding: 0;
+    }
+
+    /* 3. Adjust Main Content */
+    .main-content {
+        height: calc(100vh - 65px); /* Leave room for bottom nav */
+        padding-bottom: 80px;
+    }
+
+    .top-nav {
+        padding: 0 1rem;
+        min-height: 70px;
+    }
+
+    /* 4. Viewer Adjustments */
+    .question-container {
+        flex-direction: column; /* Arrows above/below image if needed */
+        gap: 10px;
+    }
+
+    .image-arrow {
+        width: 45px;
+        height: 45px;
+    }
+
+    .time-box {
+        font-size: 1.1rem;
+        padding: 0.4rem;
+    }
+}
+
+/* --- Small Mobile Phones (Max 480px) --- */
+@media (max-width: 480px) {
+    /* 1. Dashboard Cards */
+    .grid-layout {
+        grid-template-columns: 1fr; /* Single column */
+    }
+
+    .gate-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .gate-title {
+        font-size: 1.5rem;
+    }
+
+    /* 2. Paper Selection */
+    .paper-selection {
+        padding: 1rem;
+        justify-content: center;
+    }
+
+    .paper-selection select {
+        width: 100%; /* Full width dropdowns for fat-finger friendliness */
+    }
+
+    /* 3. Text & Interaction */
+    .big-text {
+        font-size: 1.8rem;
+    }
+
+    .activity-row-primary {
+        font-size: 1rem;
+    }
+
+    /* Prevent iOS zoom on focus */
+    .gate-input, .standard-input, select {
+        font-size: 16px !important;
+    }
+
+    /* Shrink the timer on very small screens */
+    .header-timer {
+        gap: 0.5rem;
+    }
+}
