@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutModal = document.getElementById('logoutModal');
     const confirmLogout = document.getElementById('confirmLogout');
     const cancelLogout = document.getElementById('cancelLogout');
+    const authBtn = document.getElementById("authTopBtn");
 
     // Selection Elements
     const subjectSelect = document.getElementById("subjectSelect");
@@ -269,7 +270,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (seasonSelect) seasonSelect.addEventListener('change', applyVariantRule);
 
-    const authBtn = document.getElementById("authTopBtn");
     if (authBtn) {
         authBtn.onclick = () => {
             if (authBtn.classList.contains('logout-state')) {
@@ -338,103 +338,103 @@ document.addEventListener("DOMContentLoaded", () => {
     if(prevBtn) prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; renderUI(); } };
     if(nextBtn) nextBtn.onclick = () => { if (currentIndex < questions.length - 1) { currentIndex++; renderUI(); } };
 
-/* =========================================
-   MODAL CLOSING LOGIC (FIXED)
-   ========================================= */
-window.addEventListener('click', (e) => {
-    // Check Logout Modal
-    if (logoutModal && e.target === logoutModal) {
-        logoutModal.style.display = 'none';
-    }
-    // Check Not Found Modal
-    if (notFoundModal && e.target === notFoundModal) {
-        notFoundModal.style.display = 'none';
-    }
-});
+    /* =========================================
+       MODAL CLOSING LOGIC (FIXED)
+       ========================================= */
+    window.addEventListener('click', (e) => {
+        if (logoutModal && e.target === logoutModal) {
+            logoutModal.style.display = 'none';
+        }
+        if (notFoundModal && e.target === notFoundModal) {
+            notFoundModal.style.display = 'none';
+        }
+    });
 
-/* =========================================
-   3. PERSISTENT TIMER LOGIC
-   ========================================= */
-const hoursEl = document.getElementById("hours"),
-      minutesEl = document.getElementById("minutes"),
-      secondsEl = document.getElementById("seconds"),
-      startBtn = document.getElementById("startTimer"),
-      pauseBtn = document.getElementById("pauseTimer"),
-      resetBtn = document.getElementById("resetTimer");
+    /* =========================================
+       3. PERSISTENT TIMER LOGIC
+       ========================================= */
+    const hoursEl = document.getElementById("hours"),
+          minutesEl = document.getElementById("minutes"),
+          secondsEl = document.getElementById("seconds"),
+          startBtn = document.getElementById("startTimer"),
+          pauseBtn = document.getElementById("pauseTimer"),
+          resetBtn = document.getElementById("resetTimer");
 
-let tInt = null;
+    let tInt = null;
 
-function getTimerData() {
-    return JSON.parse(localStorage.getItem("timerTime")) || { h: 0, m: 0, s: 0, startTime: null, running: false };
-}
-
-function updateTimerUI() {
-    const data = getTimerData();
-    let totalSeconds = (data.h * 3600) + (data.m * 60) + data.s;
-
-    if (data.running && data.startTime) {
-        const elapsedSinceStart = Math.floor((Date.now() - data.startTime) / 1000);
-        totalSeconds += elapsedSinceStart;
+    function getTimerData() {
+        return JSON.parse(localStorage.getItem("timerTime")) || { h: 0, m: 0, s: 0, startTime: null, running: false };
     }
 
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
+    function updateTimerUI() {
+        const data = getTimerData();
+        let totalSeconds = (data.h * 3600) + (data.m * 60) + data.s;
 
-    if(hoursEl) hoursEl.textContent = String(h).padStart(2, "0");
-    if(minutesEl) minutesEl.textContent = String(m).padStart(2, "0");
-    if(secondsEl) secondsEl.textContent = String(s).padStart(2, "0");
-    
-    localStorage.setItem("activeSessionSeconds", totalSeconds);
-}
+        if (data.running && data.startTime) {
+            const elapsedSinceStart = Math.floor((Date.now() - data.startTime) / 1000);
+            totalSeconds += elapsedSinceStart;
+        }
 
-function startInterval() {
-    if (tInt) clearInterval(tInt);
-    tInt = setInterval(updateTimerUI, 1000);
-}
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
 
-if (startBtn) {
-    startBtn.onclick = () => {
-        let data = getTimerData();
-        if (data.running) return;
-        data.running = true;
-        data.startTime = Date.now();
-        localStorage.setItem("timerTime", JSON.stringify(data));
-        startInterval();
-    };
-}
+        if(hoursEl) hoursEl.textContent = String(h).padStart(2, "0");
+        if(minutesEl) minutesEl.textContent = String(m).padStart(2, "0");
+        if(secondsEl) secondsEl.textContent = String(s).padStart(2, "0");
+        
+        localStorage.setItem("activeSessionSeconds", totalSeconds);
+    }
 
-if (pauseBtn) {
-    pauseBtn.onclick = () => {
-        let data = getTimerData();
-        if (!data.running) return;
-        const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
-        let totalS = (data.h * 3600) + (data.m * 60) + data.s + elapsed;
-        data.h = Math.floor(totalS / 3600);
-        data.m = Math.floor((totalS % 3600) / 60);
-        data.s = totalS % 60;
-        data.running = false;
-        data.startTime = null;
-        localStorage.setItem("timerTime", JSON.stringify(data));
-        clearInterval(tInt);
-        updateTimerUI();
-    };
-}
+    function startInterval() {
+        if (tInt) clearInterval(tInt);
+        tInt = setInterval(updateTimerUI, 1000);
+    }
 
-if (resetBtn) {
-    resetBtn.onclick = () => {
-        const currentData = getTimerData();
-        const elapsed = currentData.running ? Math.floor((Date.now() - currentData.startTime) / 1000) : 0;
-        const sessionS = (currentData.h * 3600) + (currentData.m * 60) + currentData.s + elapsed;
-        const lifetime = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
-        localStorage.setItem("lifetimeStudySeconds", lifetime + sessionS);
-        clearInterval(tInt);
-        localStorage.removeItem("timerTime");
-        updateTimerUI();
-    };
-}
+    if (startBtn) {
+        startBtn.onclick = () => {
+            let data = getTimerData();
+            if (data.running) return;
+            data.running = true;
+            data.startTime = Date.now();
+            localStorage.setItem("timerTime", JSON.stringify(data));
+            startInterval();
+        };
+    }
 
-// Global Timer Init
-const initialTimerData = getTimerData();
-if (initialTimerData.running) startInterval();
-updateTimerUI();})
+    if (pauseBtn) {
+        pauseBtn.onclick = () => {
+            let data = getTimerData();
+            if (!data.running) return;
+            const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
+            let totalS = (data.h * 3600) + (data.m * 60) + data.s + elapsed;
+            data.h = Math.floor(totalS / 3600);
+            data.m = Math.floor((totalS % 3600) / 60);
+            data.s = totalS % 60;
+            data.running = false;
+            data.startTime = null;
+            localStorage.setItem("timerTime", JSON.stringify(data));
+            clearInterval(tInt);
+            updateTimerUI();
+        };
+    }
+
+    if (resetBtn) {
+        resetBtn.onclick = () => {
+            const currentData = getTimerData();
+            const elapsed = currentData.running ? Math.floor((Date.now() - currentData.startTime) / 1000) : 0;
+            const sessionS = (currentData.h * 3600) + (currentData.m * 60) + currentData.s + elapsed;
+            const lifetime = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
+            localStorage.setItem("lifetimeStudySeconds", lifetime + sessionS);
+            clearInterval(tInt);
+            localStorage.removeItem("timerTime");
+            updateTimerUI();
+        };
+    }
+
+    // Global Timer Init
+    const initialTimerData = getTimerData();
+    if (initialTimerData.running) startInterval();
+    updateTimerUI();
+
+}); // End DOMContentLoaded
