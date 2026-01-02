@@ -192,8 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const tryPart = () => {
                         const char = partLetters[partIndex];
-                        const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
-                        const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
+                        const qPath = `/images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
+                        const mPath = `/images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
                         const img = new Image();
                         img.onload = () => {
                             parts.push(qPath); markParts.push(mPath);
@@ -207,8 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
 
                     const tryNoPart = () => {
-                        const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
-                        const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
+                        const qPath = `/images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
+                        const mPath = `/images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
                         const img = new Image();
                         img.onload = () => {
                             questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
