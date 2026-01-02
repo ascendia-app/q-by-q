@@ -44,10 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.querySelector('.close-modal');
     
     // Your Specific Modal Elements
-const authBtn = document.getElementById("authTopBtn");
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
     
     const clearAllBtn = document.getElementById('clearAllBtn');
     const clearAllModal = document.getElementById('clearAllModal');
@@ -57,31 +53,6 @@ const authBtn = document.getElementById("authTopBtn");
     let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
 
     // --- INTEGRATED LOGOUT LOGIC ---
-if (authBtn) {
-        authBtn.onclick = (e) => {
-            e.preventDefault(); // Stop any page jumps
-            if (authBtn.classList.contains('logout-state')) {
-                console.log("Logout clicked - Opening Modal"); // Debug check
-                if (logoutModal) logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
-            }
-        };
-    }
-
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
-        };
-    }
-
-    if (cancelLogout) {
-        cancelLogout.onclick = () => {
-            if (logoutModal) logoutModal.style.display = 'none';
-        };
-    }
-
     // --- DATA HANDLING ---
     function checkEmpty() {
         if (!savedQuestions || savedQuestions.length === 0) {
@@ -214,3 +185,24 @@ if (authBtn) {
 
     checkEmpty();
 });
+  const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const authBtn = document.getElementById("authTopBtn");
+
+    if (authBtn) {
+        authBtn.onclick = () => {
+            if (authBtn.classList.contains('logout-state')) {
+                logoutModal.style.display = 'flex';
+            } else {
+                window.location.href = 'login.html';
+            }
+        };
+    }
+    if (confirmLogout) {
+        confirmLogout.onclick = () => {
+            localStorage.removeItem("token");
+            window.location.href = "pleaselogin.html";
+        };
+    }
+    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
