@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
+       const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
     if (confirmLogout) {
         confirmLogout.onclick = () => {
             localStorage.removeItem("token");
