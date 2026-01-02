@@ -1,5 +1,3 @@
-
-
 /* =========================================
    1. AUTHENTICATION & GLOBAL STATE
    ========================================= */
@@ -77,6 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveBtn = document.getElementById('saveQuestionBtn');
     const notFoundModal = document.getElementById('notFoundModal');
     const closeNotFound = document.getElementById('closeNotFound');
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
 
     // Selection Elements
     const subjectSelect = document.getElementById("subjectSelect");
@@ -85,11 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const seasonSelect = document.getElementById("seasonSelect");
     const variantSelect = document.getElementById("variantSelect");
     const loadPaperBtn = document.getElementById("loadPaperBtn");
-
-    // Modal Events
-    if (closeNotFound && notFoundModal) {
-        closeNotFound.onclick = () => notFoundModal.style.display = 'none';
-    }
 
     // --- Core Rendering Functions ---
     function renderQuestion() {
@@ -140,7 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // NAVIGATION VISIBILITY LOGIC
         if (prevBtn) prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
         if (nextBtn) nextBtn.style.visibility = (currentIndex === questions.length - 1 || questions.length === 0) ? "hidden" : "visible";
 
@@ -236,7 +231,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             return; 
                         }
                         
-                        // JUMP/RESUME LOGIC: Only happens after full paper is in memory
                         const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
                         if (resumeQ !== null) {
                             currentIndex = parseInt(resumeQ);
@@ -245,21 +239,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (foundIndex !== -1) currentIndex = foundIndex;
                             localStorage.removeItem('jumpToQuestion');
                         }
-                        // Note: If normal recovery, currentIndex was already set before loadPaperBtn.click()
                         
                         renderUI();
                     };
 
                     tryPart();
                 };
-
                 loadNextQuestion();
             }, 50);
         };
     }
 
-    // --- Variant & UI Logic ---
-    const allVariants = [{ val: "1", text: "v1" }, { val: "2", text: "v2" }, { val: "3", text: "v3" }];
+    // --- UI/Interaction Logic ---
     function applyVariantRule() {
         const selectedSeason = seasonSelect.value;
         const savedVal = variantSelect.value;
@@ -268,9 +259,9 @@ document.addEventListener("DOMContentLoaded", () => {
             variantSelect.innerHTML = `<option value="2">v2</option>`;
             variantSelect.value = "2";
         } else {
-            allVariants.forEach(v => {
+            ["1", "2", "3"].forEach(v => {
                 const opt = document.createElement("option");
-                opt.value = v.val; opt.textContent = v.text;
+                opt.value = v; opt.textContent = "v" + v;
                 variantSelect.appendChild(opt);
             });
             if (["1", "2", "3"].includes(savedVal)) variantSelect.value = savedVal;
@@ -282,25 +273,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authBtn) {
         authBtn.onclick = () => {
             if (authBtn.classList.contains('logout-state')) {
-                document.getElementById('logoutModal').style.display = 'flex';
+                if(logoutModal) logoutModal.style.display = 'flex';
             } else {
                 window.location.href = 'login.html';
             }
         };
     }
-
-    const confirmLogout = document.getElementById('confirmLogout');
     if (confirmLogout) {
         confirmLogout.onclick = () => {
             localStorage.removeItem("token");
             window.location.href = "pleaselogin.html";
         };
     }
-
-    const cancelLogout = document.getElementById('cancelLogout');
-    if (cancelLogout) {
-        cancelLogout.onclick = () => document.getElementById('logoutModal').style.display = 'none';
-    }
+    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
+    if (closeNotFound) closeNotFound.onclick = () => notFoundModal.style.display = 'none';
 
     if (saveBtn) {
         saveBtn.onclick = () => {
@@ -322,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
         markSchemeBtn.onclick = () => {
             const isOpen = markSchemeViewer.classList.toggle("open");
             markSchemeViewer.style.display = isOpen ? "block" : "none";
-            markSchemeBtn.innerHTML = isOpen ? `<i class="fas fa-eye-slash"></i> Hide Mark Scheme` : `<i class="fas fa-eye"></i> Show Mark Scheme`;
+            markSchemeBtn.innerHTML = isOpen ? `<i class="fas fa-eye-slash"></i> Hide MS` : `<i class="fas fa-eye"></i> Show MS`;
         };
     }
 
@@ -351,6 +337,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if(prevBtn) prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; renderUI(); } };
     if(nextBtn) nextBtn.onclick = () => { if (currentIndex < questions.length - 1) { currentIndex++; renderUI(); } };
+
+    window.onclick = (e) => {
+        if (logoutModal && e.target === logoutModal) logoutModal.style.display = 'none';
+        if (notFoundModal && e.target === notFoundModal) notFoundModal.style.display = 'none';
+    };
 });
 
 /* =========================================
@@ -378,13 +369,13 @@ function updateTimerUI() {
         totalSeconds += elapsedSinceStart;
     }
 
-    const displayH = Math.floor(totalSeconds / 3600);
-    const displayM = Math.floor((totalSeconds % 3600) / 60);
-    const displayS = totalSeconds % 60;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
 
-    if(hoursEl) hoursEl.textContent = String(displayH).padStart(2, "0");
-    if(minutesEl) minutesEl.textContent = String(displayM).padStart(2, "0");
-    if(secondsEl) secondsEl.textContent = String(displayS).padStart(2, "0");
+    if(hoursEl) hoursEl.textContent = String(h).padStart(2, "0");
+    if(minutesEl) minutesEl.textContent = String(m).padStart(2, "0");
+    if(secondsEl) secondsEl.textContent = String(s).padStart(2, "0");
     
     localStorage.setItem("activeSessionSeconds", totalSeconds);
 }
@@ -435,35 +426,7 @@ if (resetBtn) {
     };
 }
 
-// Initialize Timer on Load
-const initialData = getTimerData();
-if (initialData.running) startInterval();
+// Global Timer Init
+const initialTimerData = getTimerData();
+if (initialTimerData.running) startInterval();
 updateTimerUI();
-    // Close on outside click
-    window.onclick = (e) => {
-        if (e.target === logoutModal) logoutModal.style.display = 'none';
-        if (e.target === modal) modal.style.display = 'none';
-    };
-
-    checkEmpty();
-  const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
-    const authBtn = document.getElementById("authTopBtn");
-
-    if (authBtn) {
-        authBtn.onclick = () => {
-            if (authBtn.classList.contains('logout-state')) {
-                logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
-            }
-        };
-    }
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
-        };
-    }
-    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
