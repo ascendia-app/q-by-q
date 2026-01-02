@@ -105,3 +105,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     setInterval(updateTimer, 1000);
     updateTimer();
 });
+  // Modal Elements
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const authBtn = document.getElementById("authTopBtn");
+
+    if (authBtn) {
+        authBtn.onclick = () => {
+            if (authBtn.classList.contains('logout-state')) {
+                logoutModal.style.display = 'flex';
+            } else {
+                window.location.href = 'login.html';
+            }
+        };
+    }
+    if (confirmLogout) {
+        confirmLogout.onclick = () => {
+            localStorage.removeItem("token");
+            window.location.href = "pleaselogin.html";
+        };
+    }
+    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';

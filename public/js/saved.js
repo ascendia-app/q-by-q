@@ -49,16 +49,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- AUTH UI ---
-    if (authBtn && localStorage.getItem("token")) {
-        authBtn.classList.add('logout-state');
-        authBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout`;
+
+    if (authBtn) {
         authBtn.onclick = () => {
-            if(confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem("token");
-                window.location.href = "login.html";
+            if (authBtn.classList.contains('logout-state')) {
+                logoutModal.style.display = 'flex';
+            } else {
+                window.location.href = 'login.html';
             }
         };
     }
+    if (confirmLogout) {
+        confirmLogout.onclick = () => {
+            localStorage.removeItem("token");
+            window.location.href = "pleaselogin.html";
+        };
+    }
+    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
 
     // --- DATA HANDLING ---
     function checkEmpty() {
