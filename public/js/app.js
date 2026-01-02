@@ -338,10 +338,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if(prevBtn) prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; renderUI(); } };
     if(nextBtn) nextBtn.onclick = () => { if (currentIndex < questions.length - 1) { currentIndex++; renderUI(); } };
 
-    window.onclick = (e) => {
-        if (logoutModal && e.target === logoutModal) logoutModal.style.display = 'none';
-        if (notFoundModal && e.target === notFoundModal) notFoundModal.style.display = 'none';
-    };
+/* =========================================
+   MODAL CLOSING LOGIC (FIXED)
+   ========================================= */
+window.addEventListener('click', (e) => {
+    // Check Logout Modal
+    if (logoutModal && e.target === logoutModal) {
+        logoutModal.style.display = 'none';
+    }
+    // Check Not Found Modal
+    if (notFoundModal && e.target === notFoundModal) {
+        notFoundModal.style.display = 'none';
+    }
 });
 
 /* =========================================
@@ -429,4 +437,4 @@ if (resetBtn) {
 // Global Timer Init
 const initialTimerData = getTimerData();
 if (initialTimerData.running) startInterval();
-updateTimerUI();
+updateTimerUI();})
