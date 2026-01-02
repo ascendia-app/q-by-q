@@ -89,16 +89,17 @@
             </div>
         </div>
     </div>
-<div id="logoutModal" class="modal"> <div class="modal-content" style="max-width: 400px; text-align: center;">
-        <div class="gate-icon-circle" style="background: #f1f5f9; color: #475569; margin: 0 auto 1.5rem;">
+<div id="logoutModal" class="modal">
+    <div class="modal-content logout-confirm-card">
+        <div class="gate-icon-circle" style="background-color: #fff1f2; color: #e11d48;">
             <i class="fas fa-sign-out-alt"></i>
         </div>
-        <h2 class="gate-title">Confirm Logout</h2>
-        <p class="gate-description">Are you sure you want to log out of your session?</p>
+        <h2 class="gate-title">Logging Out?</h2>
+        <p class="gate-description">Are you sure you want to end your session? You'll need to login again to access your saved questions.</p>
         
-        <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-            <button id="cancelLogout" class="btn-gate" style="background: #f1f5f9; color: #475569;">Cancel</button>
-            <button id="confirmLogout" class="btn-gate" style="background: #3b82f6; color: white;">Logout</button>
+        <div class="gate-actions">
+            <button id="confirmLogout" class="btn-gate" style="background: #e11d48; color: white; border: none;">Logout</button>
+            <button id="cancelLogout" class="btn-secondary-gate btn-gate">Stay Logged In</button>
         </div>
     </div>
 </div>
