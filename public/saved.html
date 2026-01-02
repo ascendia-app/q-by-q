@@ -7,37 +7,47 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="dashboard-page">
 
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-logo">Q by Q</div>
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Q<span>by</span>Q</div>
+                <button id="toggleSidebar" class="toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
             
             <nav class="nav-links">
-                <a href="dashboard.html" class="nav-item">
-                    <i class="fas fa-home"></i> <span>Dashboard</span>
+                <a href="dashboard.html" class="nav-item" title="Dashboard">
+                    <div class="icon-box"><i class="fas fa-home"></i></div>
+                    <span class="nav-text">Dashboard</span>
                 </a>
-                <a href="index.html" class="nav-item">
-                    <i class="fas fa-book"></i> <span>Practice</span>
+                <a href="index.html" class="nav-item" title="Practice">
+                    <div class="icon-box"><i class="fas fa-book"></i></div>
+                    <span class="nav-text">Practice</span>
                 </a>
-                <a href="saved.html" class="nav-item active">
-                    <i class="fas fa-bookmark"></i> <span>Saved</span>
+                <a href="saved.html" class="nav-item active" title="Saved">
+                    <div class="icon-box"><i class="fas fa-bookmark"></i></div>
+                    <span class="nav-text">Saved</span>
                 </a>
             </nav>
             
             <div class="sidebar-footer">
-                <button id="authTopBtn" class="auth-btn logout-state">
-                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                <button id="authTopBtn" class="auth-btn logout-state" title="Logout">
+                    <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
+                    <span class="nav-text">Logout</span>
                 </button>
             </div>
         </aside>
 
         <main class="main-content">
             <header class="top-nav">
-               <div class="header-title">
-                    <h2 style="margin:0; font-size: 1.2rem;">Saved Questions</h2>
+                <div class="header-title">
+                    <h2 id="saved-title">Saved Questions</h2>
                 </div>
-                <div class="header-timer">
+                <div class="header-actions">
                     <button id="clearAllBtn" class="reset-danger-btn">
                         <i class="fas fa-trash-alt"></i> Clear All
                     </button>
@@ -45,64 +55,59 @@
             </header>
 
             <div class="dashboard-content">
-                <div id="emptyState" class="gate-card" style="display:none; margin: 100px auto; max-width: 400px; text-align: center;">
-                    <div class="gate-icon-circle" style="margin: 0 auto 1.5rem; background: #f1f5f9; color: #94a3b8;">
+                <div id="emptyState" class="gate-card empty-state-container" style="display:none;">
+                    <div class="gate-icon-circle muted">
                         <i class="far fa-bookmark"></i>
                     </div>
                     <h2 class="gate-title">Library Empty</h2>
                     <p class="gate-description">Start practicing and bookmark questions for future review. Your saved questions will appear here.</p>
+                    <a href="index.html" class="btn-gate">Start Practice</a>
                 </div>
 
-                <div id="savedGrid" class="dashboard-grid">
-                    </div>
+                <div id="savedGrid" class="dashboard-grid"></div>
             </div>
         </main>
     </div>
 
-    <div id="previewModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
+<div id="previewModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; width: 90%;">
+        <div class="modal-header">
+            <h2 id="modalTitle">Question Preview</h2>
             <span class="close-modal">&times;</span>
-            <div class="modal-header">
-                <h2 id="modalTitle" class="gate-title" style="text-align: left; font-size: 1.5rem;">Question Details</h2>
+        </div>
+        <div id="modalImages"></div>
+        <button id="toggleModalMS" class="primary">Show Mark Scheme</button>
+        <div id="modalMS" style="display:none; margin-top:20px; border-top:2px dashed #ccc; padding-top:20px;"></div>
+    </div>
+</div>
+
+    <div id="clearAllModal" class="modal">
+        <div class="modal-content logout-confirm-card">
+            <div class="gate-icon-circle danger">
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <div class="modal-body">
-                <div id="modalImages" class="question-content"></div>
-                <div class="mark-btn-container" style="margin-top: 20px;">
-                    <button id="toggleModalMS" class="btn-gate">Show Mark Scheme</button>
-                </div>
-                <div id="modalMS" class="markscheme-viewer" style="display:none; margin-top: 15px;"></div>
+            <h2 class="gate-title">Clear Library?</h2>
+            <p class="gate-description">This will permanently remove all bookmarked questions. This action cannot be undone.</p>
+            <div class="gate-actions">
+                <button id="confirmClearBtn" class="btn-gate danger-bg">Delete All</button>
+                <button id="cancelClearBtn" class="btn-gate secondary-bg">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="clearAllModal" class="modal">
-        <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 5px solid #ef4444;">
-            <div class="gate-icon-circle" style="background: #fee2e2; color: #ef4444; margin: 0 auto 1.5rem;">
-                <i class="fas fa-trash-alt"></i>
+    <div id="logoutModal" class="modal">
+        <div class="modal-content logout-confirm-card">
+            <div class="gate-icon-circle danger">
+                <i class="fas fa-sign-out-alt"></i>
             </div>
-            <h2 class="gate-title" style="font-size: 1.5rem;">Clear All Saved?</h2>
-            <p class="gate-description">This will permanently remove all bookmarked questions from your list. This action cannot be undone.</p>
-            
-            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                <button id="cancelClearBtn" class="btn-gate" style="background: #f1f5f9; color: #475569;">Cancel</button>
-                <button id="confirmClearBtn" class="btn-gate" style="background: #ef4444; color: white;">Yes, Clear All</button>
+            <h2 class="gate-title">Logging Out?</h2>
+            <p class="gate-description">Are you sure you want to end your session?</p>
+            <div class="gate-actions">
+                <button id="confirmLogout" class="btn-gate danger-bg">Logout</button>
+                <button id="cancelLogout" class="btn-gate secondary-bg">Stay</button>
             </div>
         </div>
     </div>
-<div id="logoutModal" class="modal">
-    <div class="modal-content logout-confirm-card">
-        <div class="gate-icon-circle" style="background-color: #fff1f2; color: #e11d48;">
-            <i class="fas fa-sign-out-alt"></i>
-        </div>
-        <h2 class="gate-title">Logging Out?</h2>
-        <p class="gate-description">Are you sure you want to end your session? You'll need to login again to access your saved questions.</p>
-        
-        <div class="gate-actions">
-            <button id="confirmLogout" class="btn-gate" style="background: #e11d48; color: white; border: none;">Logout</button>
-            <button id="cancelLogout" class="btn-secondary-gate btn-gate">Stay Logged In</button>
-        </div>
-    </div>
-</div>
 
     <script src="js/saved.js"></script>
 </body>

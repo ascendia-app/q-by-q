@@ -2,29 +2,30 @@
    1. CORE VARIABLES & RESET
    ========================================= */
 :root {
-  --blue: #0ea5e9;
-  --teal: #14b8a6;
-  --dark: #0f172a;
-  --light: #f8fafc;
-  --border: #e2e8f0;
-  --sidebar-width: 260px;
-  --white: #ffffff;
+    --blue: #0ea5e9;
+    --teal: #14b8a6;
+    --dark: #0f172a;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+    --white: #ffffff;
 }
 
 * {
-  box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  transition: all 0.2s ease;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: all 0.2s ease;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden; /* Prevents double scrollbars */
-  background: var(--white);
-  color: var(--dark);
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    /* Prevents double scrollbars */
+    background: var(--white);
+    color: var(--dark);
 }
 
 /* =========================================
@@ -35,7 +36,7 @@ html, body {
     min-height: 100vh;
     width: 100%;
     display: flex;
-    align-items: center;    
+    align-items: center;
     justify-content: center;
     padding: 2rem;
     background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
@@ -58,7 +59,8 @@ html, body {
 .gate-icon-circle {
     width: 72px;
     height: 72px;
-    background: #f0f9ff; /* Soft sky background */
+    background: #f0f9ff;
+    /* Soft sky background */
     color: var(--blue);
     border-radius: 1.2rem;
     display: flex;
@@ -72,11 +74,12 @@ html, body {
 /* APPLYING THE GRADIENT TO THE TITLE */
 .gate-title {
     background: linear-gradient(90deg, var(--blue), var(--teal));
-    -webkit-background-clip: text; 
-    background-clip: text; 
+    -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: transparent; 
-    font-size: 2rem; /* Slightly larger for brand impact */
+    color: transparent;
+    font-size: 2rem;
+    /* Slightly larger for brand impact */
     font-weight: 800;
     margin-bottom: 0.5rem;
     letter-spacing: -1px;
@@ -89,7 +92,8 @@ html, body {
     font-size: 0.95rem;
 }
 
-.gate-form, .gate-actions {
+.gate-form,
+.gate-actions {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -189,15 +193,33 @@ html, body {
 }
 
 @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
 }
+
 /* Error Handling */
 .auth-error {
     background-color: #fff1f2;
@@ -212,281 +234,637 @@ html, body {
 
 /* Animations */
 @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* =========================================
    3. THE MAIN APP CONTAINER (Sidebar + Main)
    ========================================= */
-.app-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-}
 
 /* Sidebar Styling */
+/* --- App Layout Fix --- */
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* --- Sidebar: Cleaned & Unified --- */
+
+
+/* Collapsed State */
+
+
+/* Center icons when collapsed */
+
+
+/* Ensure the main content expands to fill the space */
+/* =========================================
+   REFINED SIDEBAR SYSTEM
+   ========================================= */
+
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
 .sidebar {
-  width: var(--sidebar-width);
-  background: var(--dark);
-  color: var(--white);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    /* Fixes the overflow issue */
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+    width: 75px;
+    transition: none !important;
+}
+
+/* Header & Logo */
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 1.5rem 0;
+}
+
+.sidebar-header {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    /* Reduced for better centering when collapsed */
+}
+
+body.ready .sidebar {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-logo {
-  padding: 2rem 1.5rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -1px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-left: 10px;
+    color: var(--white);
+    opacity: 1;
+    transition: opacity 0.2s;
 }
 
+.sidebar-logo span {
+    color: var(--teal);
+}
+
+/* Navigation Links */
 .nav-links {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 0;
 }
 
 .nav-item {
-  padding: 0.8rem 1.5rem;
-  display: flex;
-  align-items: center;
-  color: #94a3b8;
-  text-decoration: none;
-  font-weight: 500;
-  border-left: 4px solid transparent;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+    overflow: hidden;
 }
 
-.nav-item i { margin-right: 12px; width: 20px; text-align: center; }
-
-.nav-item:hover, .nav-item.active {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--white);
+.nav-item:hover,
+.nav-item.active {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--white);
 }
 
 .nav-item.active {
-  border-left-color: var(--teal);
+    border-left-color: var(--teal);
+    background: rgba(20, 184, 166, 0.1);
 }
+
+/* The Secret to Consistency: Icon Box */
+.icon-box {
+    width: 75px;
+    /* Matches collapsed width exactly */
+    min-width: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* Text Handling */
+.nav-text {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-text,
+.sidebar-logo {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* --- Collapsed Transitions --- */
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 15px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-footer .auth-btn {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    /* Remove padding to keep logout within 75px */
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.auth-btn:hover {
+    background: rgba(225, 29, 72, 0.1);
+    color: #e11d48;
+}
+
+/* Toggle Button Styling */
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+
 
 /* Sidebar Question List Integration */
 .sidebar-questions {
-  flex-grow: 1;
-  overflow-y: auto;
-  margin-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+    flex: 1;
+    overflow-y: auto;
+    /* Only the question list scrolls */
+    margin-top: 1rem;
+    border-top: 1px solid #e2e8f0;
 }
 
 .question-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 1.5rem;
+}
+
+.sidebar.collapsed .sidebar-questions {
+    display: none;
 }
 
 .question-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: var(--white);
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .question-btn.active {
-  background: var(--teal);
-  border: none;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    background: var(--teal);
+    border: none;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
 }
 
 /* =========================================
    4. TOP NAVIGATION & TIMER
    ========================================= */
 .main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow-y: auto;
-  background: var(--white);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--white);
 }
 
 .top-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 2rem;
-  min-height: 80px;
-  border-bottom: 1px solid var(--border);
-  background: var(--white);
-  flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    min-height: 80px;
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    flex-shrink: 0;
 }
 
 .header-timer {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-#timer { display: flex; align-items: center; gap: 5px; }
+#timer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 
 .time-box {
-  background: var(--light);
-  padding: 0.5rem 0.7rem;
-  border-radius: 8px;
-  border: 2px solid var(--border);
-  font-family: 'Courier New', monospace;
-  font-weight: 800;
-  font-size: 1.5rem;
-  min-width: 50px;
-  text-align: center;
+    background: var(--light);
+    padding: 0.5rem 0.7rem;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    font-family: 'Courier New', monospace;
+    font-weight: 800;
+    font-size: 1.5rem;
+    min-width: 50px;
+    text-align: center;
 }
 
 .timer-controls button {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--white);
-  cursor: pointer;
-  font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    font-weight: 600;
 }
 
 /* =========================================
    5. PRACTICE VIEWER (Center Aligned)
    ========================================= */
 .paper-selection {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 1rem 2rem;
-  background: var(--light);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 2rem;
+    background: var(--light);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
 }
 
 .paper-selection select {
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--white);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
 }
 
 .question-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers children horizontally */
-  justify-content: center;
-  width: 100%;
-  min-height: 60vh; /* Gives the viewer enough vertical space */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Centers children horizontally */
+    justify-content: center;
+    width: 100%;
+    min-height: 60vh;
+    /* Gives the viewer enough vertical space */
 }
 
 .question-header {
-  margin-bottom: 2rem;
-  text-align: center;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .question-container {
-  display: flex;
-  align-items: center; /* Vertically aligns arrows with the image */
-  justify-content: center;
-  gap: 20px;
-  width: 100%;
+    display: flex;
+    align-items: center;
+    /* Vertically aligns arrows with the image */
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
 }
+
 .question-content {
-  display: flex;
-  flex-direction: column; /* This forces 1+ images to stack vertically */
-  align-items: center;    /* Centers images horizontally */
-  gap: 20px;              /* Adds space between stacked images */
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* This forces 1+ images to stack vertically */
+    align-items: center;
+    /* Centers images horizontally */
+    gap: 20px;
+    /* Adds space between stacked images */
+    width: 100%;
 }
 
 .question-content img {
-  max-width: 100%;        /* Prevents image from being wider than the screen */
-  height: auto !important; /* Forces the image to keep its original shape */
-  object-fit: contain;    /* Ensures no part of the image is cropped */
-  border-radius: 8px;
-  display: block;
+    max-width: 100%;
+    /* Prevents image from being wider than the screen */
+    height: auto !important;
+    /* Forces the image to keep its original shape */
+    object-fit: contain;
+    /* Ensures no part of the image is cropped */
+    border-radius: 8px;
+    display: block;
 }
+
 .image-arrow {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  border: none;
-  background: var(--white);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  cursor: pointer;
-  font-size: 1rem;
-  flex-shrink: 0;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background: var(--white);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .image-arrow:hover {
-  transform: scale(1.1);
-  background: var(--light);
+    transform: scale(1.1);
+    background: var(--light);
 }
 
 /* =========================================
    6. GLOBAL BUTTONS & UI
    ========================================= */
-.primary, .auth-btn {
-  background: linear-gradient(135deg, var(--teal), var(--blue));
-  color: var(--white);
-  border: none;
-  padding: 0.8rem 1.8rem;
-  border-radius: 50px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
+.primary,
+.auth-btn {
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+    color: var(--white);
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 50px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
 }
 
 .primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
 }
 
 .mark-btn-container {
-  margin-top: 3rem;
+    margin-top: 3rem;
 }
 
+/* The Container */
 .markscheme-viewer {
-  width: 100%;
-  max-width: 900px;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
+    width: 100%;
+    max-width: 750px;       /* Controlled width so it's not huge on desktop */
+    margin: 2rem auto;      /* Centers it and adds spacing */
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;          /* Helps with alignment */
+    flex-direction: column;
+    align-items: center;    /* Centers the images inside */
+    gap: 1.5rem;            /* Adds space between MS parts (a, b, c...) */
+}
+
+/* The Actual Images (This is the most important part) */
+.markscheme-viewer img {
+    max-width: 100%;        /* Prevents image from being wider than the div */
+    height: auto;           /* Prevents stretching */
+    display: block;
+    border-radius: 6px;     /* Optional: softer corners */
+    border: 1px solid #eee; /* Optional: gives the image a subtle frame */
 }
 
 /* =========================================
    7. DASHBOARD SPECIFIC (Cards)
    ========================================= */
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
 .dash-card {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: 1.2rem;
-  border: 1px solid var(--border);
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 1.2rem;
+    border: 1px solid var(--border);
+}
+/* DASHBOARD CARDS OVERHAUL */
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.dash-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header Icons */
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: #eff6ff;
+    color: #3b82f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Typography Styling */
+.label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 0.5rem;
 }
 
 .big-text {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0.5rem 0;
-  color: var(--blue);
+    color: #1e293b;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
 }
+
+/* The Activity Specific Formatting */
+#lastPaperText .subject-label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+#lastPaperText .variant-tag {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Aesthetic Resume Button */
+.btn-resume {
+    width: 100%;
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-resume:hover {
+    opacity: 0.9;
+}
+/* Container Spacing */
+#lastPaperText {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+/* Line 1: Subject / Paper Name */
+.activity-row-primary {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b; /* Dark Slate */
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.separator {
+    color: #cbd5e1; /* Light grey slash */
+    font-weight: 300;
+}
+
+.paper-span {
+    color: #3b82f6; /* QbyQ Signature Blue */
+}
+
+/* Line 2: Season Year | Variant */
+.activity-row-secondary {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b; /* Medium Slate */
+}
+
+.dot {
+    margin: 0 4px;
+    color: #cbd5e1;
+}
+
+/* Line 3: Question Badge */
+.activity-row-tertiary {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    background: #f1f5f9; /* Soft background badge */
+    padding: 4px 12px;
+    border-radius: 20px;
+    width: fit-content;
+    margin-top: 4px;
+}
+
+/* Updated Resume Button Style */
+#resumeStudyBtn {
+    background: #0f172a; /* Midnight Blue */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 600;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+#resumeStudyBtn:hover {
+    background: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.big-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0.5rem 0;
+    color: var(--blue);
+}
+
 /* --- Vertical Stacking for 1+ Images --- */
 .question-content {
     display: flex;
-    flex-direction: column; /* Stacks Part A and Part B vertically */
+    flex-direction: column;
+    /* Stacks Part A and Part B vertically */
     align-items: center;
     gap: 20px;
     width: 100%;
@@ -494,10 +872,11 @@ html, body {
 
 .question-content img {
     max-width: 100%;
-    height: auto !important; /* Fixes the stretching/squashing issue */
+    height: auto !important;
+    /* Fixes the stretching/squashing issue */
     object-fit: contain;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* --- Save Button Styling --- */
@@ -516,7 +895,8 @@ html, body {
 }
 
 .secondary-btn.saved {
-    background: #fef3c7; /* Light yellow */
+    background: #fef3c7;
+    /* Light yellow */
     border-color: #f59e0b;
     color: #b45309;
 }
@@ -524,12 +904,15 @@ html, body {
 /* --- Compatibility: Background Clip --- */
 #question-number {
     background: linear-gradient(90deg, var(--blue), var(--teal));
-    -webkit-background-clip: text; /* Safari/Chrome */
-    background-clip: text;         /* Standard Property */
+    -webkit-background-clip: text;
+    /* Safari/Chrome */
+    background-clip: text;
+    /* Standard Property */
     -webkit-text-fill-color: transparent;
     color: transparent;
     font-weight: 800;
 }
+
 /* Styling for the Saved Cards */
 .saved-card {
     background: white;
@@ -544,7 +927,7 @@ html, body {
 
 .saved-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
 .saved-card .badge {
@@ -571,32 +954,35 @@ html, body {
 /* Gradient text compatibility for the title */
 #saved-title {
     background: linear-gradient(90deg, var(--blue), var(--teal));
-    -webkit-background-clip: text; /* Safari/Chrome */
-    background-clip: text;         /* Standard Property */
+    -webkit-background-clip: text;
+    /* Safari/Chrome */
+    background-clip: text;
+    /* Standard Property */
     -webkit-text-fill-color: transparent;
     color: transparent;
     font-weight: 800;
 }
+
 /* Modal Background Overlay */
 .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
+    display: none;
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
-    width: 100%; 
-    height: 100%; 
-    background-color: rgba(0,0,0,0.8);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
 }
 
 /* Modal Box */
 .modal-content {
     background-color: var(--white);
-    margin: 5% auto; 
+    margin: 5% auto;
     padding: 2rem;
     border-radius: 1.5rem;
-    width: 80%; 
+    width: 80%;
     max-width: 900px;
     max-height: 85vh;
     overflow-y: auto;
@@ -613,87 +999,120 @@ html, body {
     color: #64748b;
 }
 
-.close-modal:hover { color: var(--dark); }
+.close-modal:hover {
+    color: var(--dark);
+}
 
 /* Ensure images in modal stack and don't stretch */
-#modalImages img, #modalMS img {
+#modalImages img,
+#modalMS img {
     width: 100%;
     height: auto;
     margin-bottom: 15px;
     border-radius: 8px;
 }
-   body {
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            background: #f4f7f6;
-            overflow: hidden; /* Prevents whole-page scroll */
-        }
 
-        /* Main Content */
-        .main-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
 
-        .top-nav {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-        }
+.close-modal {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #334155;
+    cursor: pointer;
+    padding: 10px;
+    /* Bigger hit area */
+    line-height: 1;
+    z-index: 10010 !important;
+    /* Force to very top */
+}
 
-        .dashboard-content {
-            padding: 30px;
-            max-width: 1200px;
-        }
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background: #f4f7f6;
+    overflow: hidden;
+    /* Prevents whole-page scroll */
+}
 
-        .welcome-section { margin-bottom: 30px; }
+/* Main Content */
+.main-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
 
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
+.top-nav {
+    background: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
 
-        /* Glassmorphism/Modern Card Effect */
-        .dash-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid #eee;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            transition: transform 0.2s;
-        }
+.dashboard-content {
+    padding: 30px;
+    max-width: 1200px;
+}
 
-        .dash-card:hover { transform: translateY(-5px); }
+.welcome-section {
+    margin-bottom: 30px;
+}
 
-        .stat-icon {
-            font-size: 2.5rem;
-            color: #4CAF50;
-            margin-bottom: 15px;
-        }
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
 
-        .big-text {
-            font-size: 2rem;
-            font-weight: 800;
-            margin: 10px 0;
-            color: #2c3e50;
-        }
+/* Glassmorphism/Modern Card Effect */
+.dash-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s;
+}
 
-        /* --- Login Required / Gatekeeper Styles --- */
+.dash-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: #4CAF50;
+    margin-bottom: 15px;
+}
+
+.big-text {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 10px 0;
+    color: #2c3e50;
+}
+
+/* --- Login Required / Gatekeeper Styles --- */
 .gate-wrapper {
     height: 100vh;
     width: 100%;
     display: flex;
-    align-items: center;    /* Vertical Center */
-    justify-content: center; /* Horizontal Center */
+    align-items: center;
+    /* Vertical Center */
+    justify-content: center;
+    /* Horizontal Center */
     padding: 20px;
-    background-color: #f8fafc; /* Matches your dashboard bg */
+    background-color: #f8fafc;
+    /* Matches your dashboard bg */
     position: fixed;
     top: 0;
     left: 0;
@@ -713,9 +1132,11 @@ html, body {
 .gate-icon-circle {
     width: 70px;
     height: 70px;
-    background-color: rgba(59, 130, 246, 0.1); /* Light version of your blue */
+    background-color: rgba(59, 130, 246, 0.1);
+    /* Light version of your blue */
     color: var(--blue);
-    border-radius: 1.2rem; /* Matches your card style */
+    border-radius: 1.2rem;
+    /* Matches your card style */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -732,7 +1153,8 @@ html, body {
 }
 
 .gate-description {
-    color: #64748b; /* Muted slate color */
+    color: #64748b;
+    /* Muted slate color */
     line-height: 1.6;
     margin-bottom: 2rem;
     font-size: 1rem;
@@ -779,6 +1201,7 @@ html, body {
 .back-link:hover {
     color: var(--blue);
 }
+
 /* --- Add this to your Gatekeeper section in style.css --- */
 
 .gate-input {
@@ -790,7 +1213,8 @@ html, body {
     font-size: 0.95rem;
     transition: all 0.2s;
     outline: none;
-    box-sizing: border-box; /* Ensures padding doesn't break width */
+    box-sizing: border-box;
+    /* Ensures padding doesn't break width */
 }
 
 .gate-input:focus {
@@ -799,12 +1223,14 @@ html, body {
 }
 
 /* Adjusting the gap for the signup form specifically */
-.gate-actions input + input {
+.gate-actions input+input {
     margin-top: 4px;
 }
+
 /* --- Login Page Layout --- */
 body.auth-page {
-    background-color: #f8fafc; /* Matching your dashboard background */
+    background-color: #f8fafc;
+    /* Matching your dashboard background */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -821,7 +1247,8 @@ body.auth-page {
 
 .header-title h1 {
     font-size: 2.5rem;
-    color: var(--blue); /* Your main theme blue */
+    color: var(--blue);
+    /* Your main theme blue */
     margin: 0;
     font-weight: 800;
 }
@@ -838,7 +1265,8 @@ body.auth-page {
     border-radius: 1.5rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     width: 100%;
-    max-width: 400px; /* Standard login width */
+    max-width: 400px;
+    /* Standard login width */
     border: 1px solid var(--border);
 }
 
@@ -887,6 +1315,7 @@ body.auth-page {
     filter: brightness(1.1);
     transform: translateY(-1px);
 }
+
 .error-banner {
     background-color: #fef2f2;
     color: #dc2626;
@@ -901,8 +1330,15 @@ body.auth-page {
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Red glow for inputs on error */
@@ -920,7 +1356,8 @@ body.auth-page {
    ========================================= */
 
 .sidebar-footer {
-    padding: 1rem 1.2rem; /* Balanced padding */
+    padding: 1rem 1.2rem;
+    /* Balanced padding */
     margin-top: auto;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -931,7 +1368,8 @@ body.auth-page {
     padding: 12px 16px;
     border-radius: 12px;
     font-size: 0.9rem;
-    font-weight: 700; /* Increased weight for premium feel */
+    font-weight: 700;
+    /* Increased weight for premium feel */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -942,7 +1380,8 @@ body.auth-page {
     margin: 0;
     text-decoration: none;
     outline: none;
-    background: transparent; /* Start transparent to prevent grey flash */
+    background: transparent;
+    /* Start transparent to prevent grey flash */
 }
 
 /* RED LOGOUT STATE - Clean, Ghost-style Aesthetic */
@@ -982,6 +1421,7 @@ body.auth-page {
 .sidebar-footer .auth-btn i {
     font-size: 1rem;
 }
+
 /* =========================================
    SAVED QUESTIONS GRID & CARDS
    ========================================= */
@@ -1053,7 +1493,9 @@ body.auth-page {
     cursor: pointer;
 }
 
-.btn-view:hover { background: #e0f2fe; }
+.btn-view:hover {
+    background: #e0f2fe;
+}
 
 .btn-remove {
     background: #fee2e2;
@@ -1064,7 +1506,10 @@ body.auth-page {
     cursor: pointer;
 }
 
-.btn-remove:hover { background: #fecaca; }
+.btn-remove:hover {
+    background: #fecaca;
+}
+
 /* Specific styling for the Logout Confirmation */
 .logout-confirm-card {
     max-width: 400px;
@@ -1083,12 +1528,14 @@ body.auth-page {
 
 /* Make sure the modal overlay is blurry and dark */
 #logoutModal {
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(8px);
     background-color: rgba(15, 23, 42, 0.7);
 }
+
 .reset-danger-btn {
     background: #fff1f2;
     color: #e11d48;
@@ -1106,29 +1553,231 @@ body.auth-page {
     background: #e11d48;
     color: white;
 }
+
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 2000;
 }
+
 .modal-content {
-    background: white; padding: 2rem; border-radius: 12px;
-    text-align: center; max-width: 400px; width: 90%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
+
 .btn-confirm {
-    background: #3b82f6; color: white; border: none;
-    padding: 0.8rem 2rem; border-radius: 6px; cursor: pointer;
-    margin-top: 1rem; font-weight: 600;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 1rem;
+    font-weight: 600;
 }
+
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
+
 .fa-spin {
     animation: spin 1s linear infinite;
     display: inline-block;
     margin-right: 8px;
+}
+
+/* Container for the right-side items */
+.header-right {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+}
+
+/* The Profile Toggle Button */
+.dropbtn {
+    background: #3498db;
+    color: white;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.dropbtn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Dropdown Menu Positioning */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 55px;
+    /* Directly below the button */
+    right: 0;
+    background: white;
+    min-width: 240px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #edf2f7;
+}
+
+.dropdown-content.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Sidebar base styles */
+/* Sidebar Icon Fix */
+.icon-box {
+    width: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Modal and Content Centering */
+.empty-state-container {
+    margin: 100px auto !important;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.danger-bg {
+    background: #e11d48 !important;
+    color: white;
+}
+
+.secondary-bg {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+}
+
+/* Custom Badge Colors for Saved Cards */
+.badge.mayjun {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.badge.octnov {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+/* Make images in the preview modal large and clear */
+.preview-img,
+.preview-ms-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+/* Ensure the modal is on top and scrollable */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    /* Higher than sidebar */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
+    /* Allow scrolling if question is long */
+}
+
+/* The Close Button specific fix */
+.close-modal {
+    cursor: pointer;
+    position: relative;
+    /* Ensure it stays on top of content */
+    z-index: 10001;
+    font-size: 1.5rem;
+    color: #64748b;
+}
+
+.close-modal:hover {
+    color: #ef4444;
+}
+
+/* 1. Make the modal container wider for math questions */
+#previewModal .modal-content {
+    width: 95% !important;
+    max-width: 1000px !important;
+    /* Increased from 800px */
+    margin: 20px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+}
+
+/* 2. Force images to take up the full width of the modal */
+.preview-img,
+.preview-ms-img {
+    width: 100% !important;
+    /* Force fill container */
+    max-width: 100% !important;
+    height: auto !important;
+    /* Maintain aspect ratio */
+    display: block !important;
+    margin: 15px 0 !important;
+    image-rendering: -webkit-optimize-contrast;
+    /* Keeps text sharp */
+    border: 1px solid #eee;
+}
+
+/* 3. Ensure the loading text doesn't shrink the modal */
+.loading {
+    padding: 50px;
+    text-align: center;
+    font-weight: bold;
+    color: #64748b;
 }

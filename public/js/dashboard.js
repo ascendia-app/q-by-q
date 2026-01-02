@@ -1,30 +1,79 @@
-const API_BASE_URL = "https://q-by-q.vercel.app/api"; // Updated to your absolute URL
+/* =========================================
+   1. GLOBAL CONFIG & INITIALIZATION
+   ========================================= */
+const API_BASE_URL = "https://q-by-q.vercel.app/api";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- 1. ELEMENT SELECTIONS ---
-    const token = localStorage.getItem("token");
-    const userEmailDisplay = document.getElementById("userEmail");
-    const lastPaperDisplay = document.getElementById("lastPaperText");
-    const resumeBtn = document.querySelector(".btn-full");
-    const totalTimeDisplay = document.getElementById("totalTime");
-    
-    // Auth/Logout Elements
-    const authBtn = document.getElementById("authTopBtn");
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
+    // 1. Run Auth Check
+    await checkAuth();
 
-    // --- 2. AUTH GUARD ---
-    if (!token) {
-        window.location.href = "pleaselogin.html";
-        return;
+    // 2. Sidebar Persistence
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    if (localStorage.getItem("sidebarCollapsed") === "true") {
+        sidebar?.classList.add("collapsed");
     }
 
-    // --- 3. FETCH USER DATA ---
+    if (toggleSidebar) {
+        toggleSidebar.onclick = () => {
+            sidebar.classList.toggle("collapsed");
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        };
+    }
+
+    // 3. Initialize Dashboard Data
+    updateRecentActivity();
+    updateLifetimeTimer();
+    setInterval(updateLifetimeTimer, 1000);
+
+    // 4. Reset Progress Logic (The "Nuclear" Option)
+    const resetModal = document.getElementById("resetModal");
+    const totalResetBtn = document.getElementById("totalResetBtn");
+    
+    if (totalResetBtn) {
+        totalResetBtn.onclick = () => resetModal.style.display = 'flex';
+    }
+    
+    const cancelResetBtn = document.getElementById("cancelReset");
+    if (cancelResetBtn) {
+        cancelResetBtn.onclick = () => resetModal.style.display = 'none';
+    }
+    
+    const confirmResetBtn = document.getElementById("confirmReset");
+    if (confirmResetBtn) {
+        confirmResetBtn.onclick = () => {
+            // This is the ONLY place where recent activity should be cleared
+            localStorage.removeItem("lastPaper");
+            localStorage.removeItem("lifetimeStudySeconds");
+            localStorage.removeItem("timerTime");
+            localStorage.removeItem("savedQuestions");
+            window.location.reload();
+        };
+    }
+});
+
+/* =========================================
+   2. AUTH FUNCTIONS (SYNCED WITH APP.JS)
+   ========================================= */
+async function checkAuth() {
+    let token = localStorage.getItem("token");
+    
+    // Clean token from potential quotes
+    if (token && (token.startsWith('"') || token.startsWith("'"))) {
+        token = token.substring(1, token.length - 1);
+    }
+
+    // Guard: Redirect if no valid token exists
+    if (!token || token === "null" || token === "undefined" || token.length < 20) {
+        updateSidebarAuthBtn(false);
+        window.location.href = "pleaselogin.html"; 
+        return false; 
+    }
+
     try {
-        const res = await fetch(`${API_BASE_URL}/dashboard/dashboard-data`, {
+        const res = await fetch(`${API_BASE_URL}/auth/verify`, {
             method: "GET",
-            headers: { 
+            headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
@@ -32,134 +81,168 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (res.ok) {
             const data = await res.json();
-            if (userEmailDisplay) userEmailDisplay.textContent = data.user?.email || "User Account";
+            updateSidebarAuthBtn(true, data.email);
+            return true;
         } else {
-            if (userEmailDisplay) userEmailDisplay.textContent = "Error loading user";
+            // If backend fails but token looks real, stay logged in for UI
+            updateSidebarAuthBtn(true); 
+            return true;
         }
     } catch (err) {
-        console.warn("Server offline, using local data.");
-        if (userEmailDisplay) userEmailDisplay.textContent = "Offline Mode";
+        console.error("Auth Fetch Error:", err);
+        updateSidebarAuthBtn(true); 
+        return true; 
     }
+}
 
-    // --- 4. LOGOUT MODAL LOGIC ---
-    if (authBtn) {
-        authBtn.onclick = (e) => {
-            e.preventDefault();
-            if (authBtn.classList.contains('logout-state')) {
-                if (logoutModal) logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
+function updateSidebarAuthBtn(isLoggedIn, email = "") {
+    const authBtn = document.getElementById("authTopBtn");
+    const userEmailDisplay = document.getElementById("userEmail");
+    if (!authBtn) return;
+
+    if (userEmailDisplay) userEmailDisplay.textContent = email;
+
+    if (isLoggedIn) {
+        authBtn.classList.add("logout-state");
+        authBtn.classList.remove("login-state");
+        authBtn.innerHTML = `
+            <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="nav-text">Logout</span>
+        `;
+    } else {
+        authBtn.classList.add("login-state");
+        authBtn.classList.remove("logout-state");
+        authBtn.innerHTML = `
+            <div class="icon-box"><i class="fas fa-sign-in-alt"></i></div>
+            <span class="nav-text">Login</span>
+        `;
+    }
+}
+
+/* =========================================
+   3. RECENT ACTIVITY & TIMER
+   ========================================= */
+function updateRecentActivity() {
+    const lastPaperData = localStorage.getItem("lastPaper");
+    const lastPaperText = document.getElementById("lastPaperText");
+    const resumeBtn = document.getElementById("resumeStudyBtn");
+
+    if (lastPaperData && lastPaperData !== "undefined") {
+        try {
+            const lastPaper = JSON.parse(lastPaperData);
+            const seasonNames = { "mayjun": "May/June", "octnov": "Oct/Nov", "febmar": "Feb/Mar" };
+            const displaySeason = seasonNames[lastPaper.series] || "Series";
+            const displayVariant = lastPaper.variant ? lastPaper.variant.replace('v', '') : "1";
+            const questionNum = (lastPaper.currentIndex || 0) + 1; 
+
+            if (lastPaperText) {
+                lastPaperText.innerHTML = `
+                    <div class="activity-row-primary">
+                        <span class="subject-span">${lastPaper.subject || "9709 Maths"}</span>
+                        <span class="separator">/</span>
+                        <span class="paper-span">${lastPaper.paperName || "Paper"}</span>
+                    </div>
+                    <div class="activity-row-secondary">
+                        ${displaySeason} ${lastPaper.year} <span class="dot">•</span> Variant ${displayVariant}
+                    </div>
+                    <div class="activity-row-tertiary">
+                        Question ${questionNum}
+                    </div>
+                `;
             }
-        };
-    }
 
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
-        };
-    }
-
-    if (cancelLogout) {
-        cancelLogout.onclick = () => {
-            if (logoutModal) logoutModal.style.display = 'none';
-        };
-    }
-
-    // Global click to close modal
-    window.addEventListener('click', (e) => {
-        if (e.target === logoutModal) logoutModal.style.display = 'none';
-    });
-
-    // --- 5. RECENT ACTIVITY PRETTIFIER ---
-    const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
-
-    if (lastPaper && lastPaper.paper) {
-        const formattedComp = lastPaper.paper.replace(/([a-zA-Z]+)(\d+)/, (match, p1, p2) => {
-            return p1.charAt(0).toUpperCase() + p1.slice(1) + " " + p2;
-        });
-
-        const seriesMap = { 
-            'mayjun': 'May/June', 'octnov': 'Oct/Nov', 'febmar': 'Feb/March',
-            'm_j': 'May/June', 'o_n': 'Oct/Nov', 'f_m': 'Feb/March' 
-        };
-        const rawSeries = lastPaper.series || lastPaper.season || "";
-        const formattedSeries = seriesMap[rawSeries] || rawSeries;
-        const formattedVar = lastPaper.variant ? lastPaper.variant.replace('v', 'Var ') : "";
-
-        const displayParts = [];
-        if (formattedComp) displayParts.push(formattedComp);
-        if (formattedSeries || lastPaper.year) displayParts.push(`${formattedSeries} ${lastPaper.year}`.trim());
-        if (formattedVar) displayParts.push(formattedVar);
-
-        const finalDisplayStr = displayParts.join(' | '); 
-        const qIndex = lastPaper.currentIndex !== undefined ? lastPaper.currentIndex : 0;
-
-        if (lastPaperDisplay) {
-            lastPaperDisplay.innerHTML = `
-                <span style="color: #3498db; font-weight: 700;">${finalDisplayStr}</span>
-                <span style="font-size: 0.85rem; display: block; color: #7f8c8d; margin-top: 5px;">Progress: Q${qIndex + 1}</span>
-            `;
-        }
-
-        if (resumeBtn) {
-            resumeBtn.onclick = (e) => {
-                e.preventDefault();
-                window.location.href = `index.html?paper=${lastPaper.paper}&year=${lastPaper.year}&series=${rawSeries}&variant=${lastPaper.variant}&q=${qIndex}`;
-            };
-            resumeBtn.textContent = "Continue Session";
+            if (resumeBtn) {
+                resumeBtn.style.display = "flex";
+                resumeBtn.onclick = () => {
+                    const url = `index.html?paper=${lastPaper.paper}&year=${lastPaper.year}&series=${lastPaper.series}&variant=${lastPaper.variant}&q=${lastPaper.currentIndex}`;
+                    window.location.href = url;
+                };
+            }
+        } catch (e) {
+            console.error("Error parsing lastPaper:", e);
         }
     } else {
-        if (lastPaperDisplay) lastPaperDisplay.textContent = "No Recent Activity";
+        if (lastPaperText) lastPaperText.innerHTML = `<div class="activity-row-secondary">No recent activity found. Start practicing!</div>`;
+        if (resumeBtn) resumeBtn.style.display = "none";
     }
+}
 
-    // --- 6. TIMER DISPLAY ---
-    const updateTimer = () => {
-        const lifetime = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
-        const timerData = JSON.parse(localStorage.getItem("timerTime") || '{"h":0,"m":0,"s":0,"running":false}');
-        let session = (timerData.h * 3600) + (timerData.m * 60) + timerData.s;
-        
-        if (timerData.running && timerData.startTime) {
-            session += Math.floor((Date.now() - timerData.startTime) / 1000);
-        }
-        
-        const total = lifetime + session;
-        const h = String(Math.floor(total / 3600)).padStart(2, '0');
-        const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
-        const s = String(total % 60).padStart(2, '0');
-        
-        if (totalTimeDisplay) totalTimeDisplay.textContent = `${h}:${m}:${s}`;
-    };
+function updateLifetimeTimer() {
+    // 1. Get the permanent bucket
+    const lifetimeSeconds = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
     
-    setInterval(updateTimer, 1000);
-    updateTimer();
-});
-    // Close on outside click
-    window.onclick = (e) => {
-        if (e.target === logoutModal) logoutModal.style.display = 'none';
-        if (e.target === modal) modal.style.display = 'none';
-    };
+    // 2. Get the current active session
+    const timerRaw = localStorage.getItem("timerTime");
+    let activeSeconds = 0;
 
-    checkEmpty();
-
-  const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
-    const authBtn = document.getElementById("authTopBtn");
-
-    if (authBtn) {
-        authBtn.onclick = () => {
-            if (authBtn.classList.contains('logout-state')) {
-                logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
+    if (timerRaw && timerRaw !== "undefined") {
+        try {
+            const currentSession = JSON.parse(timerRaw);
+            activeSeconds = (currentSession.h * 3600) + (currentSession.m * 60) + currentSession.s;
+            
+            if (currentSession.running && currentSession.startTime) {
+                activeSeconds += Math.floor((Date.now() - currentSession.startTime) / 1000);
             }
-        };
+        } catch (e) {
+            console.error("Timer parse error");
+        }
     }
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
+
+    // 3. The display is the sum of Permanent + Current Active
+    const totalSeconds = lifetimeSeconds + activeSeconds;
+    
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+
+    const totalTimeDisplay = document.getElementById("totalTime");
+    if (totalTimeDisplay) {
+        totalTimeDisplay.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+}
+
+/* =========================================
+   4. GLOBAL CLICK LISTENER
+   ========================================= */
+window.addEventListener('click', (e) => {
+    const logoutModal = document.getElementById("logoutModal");
+    const resetModal = document.getElementById("resetModal");
+    const authBtn = e.target.closest('#authTopBtn');
+
+    // Handle Sidebar Auth Click
+    if (authBtn) {
+        if (authBtn.classList.contains('logout-state')) {
+            if (logoutModal) logoutModal.style.display = 'flex';
+        } else {
             window.location.href = "pleaselogin.html";
-        };
+        }
+        return;
     }
-    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
+
+    // Global Confirm Logout (FIXED: Preserves lastPaper)
+    if (e.target.id === 'confirmLogout') {
+        localStorage.removeItem("token");
+        // We do NOT remove "lastPaper" here anymore so Recent Activity stays.
+        window.location.href = "pleaselogin.html";
+    }
+
+    // Modal Close logic
+    if (e.target === logoutModal || e.target.id === 'cancelLogout') {
+        if (logoutModal) logoutModal.style.display = 'none';
+    }
+
+    if (e.target === resetModal) {
+        resetModal.style.display = 'none';
+    }
+});
+
+// Escape key support
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") {
+        const modals = ["logoutModal", "resetModal"];
+        modals.forEach(id => {
+            const m = document.getElementById(id);
+            if (m) m.style.display = "none";
+        });
+    }
+});

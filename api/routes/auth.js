@@ -9,8 +9,8 @@ const auth = require("../middleware/authMiddleware.js");
 const createToken = (userId) => {
     return jwt.sign(
         { user: { id: userId } },
-        process.env.JWT_SECRET || "your_secret_key",
-        { expiresIn: "7d" } // Token now lasts 7 days
+        process.env.JWT_SECRET, // Remove the || "your_secret_key"
+        { expiresIn: "7d" }
     );
 };
 

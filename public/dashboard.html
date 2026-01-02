@@ -6,96 +6,127 @@
     <title>Dashboard | Q by Q</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        /**
+         * ANTI-FLICKER SCRIPT
+         * Executes before the DOM is even drawn to ensure the sidebar
+         * starts in the user's preferred state (collapsed or expanded).
+         */
+        (function() {
+            if (localStorage.getItem("sidebarCollapsed") === "true") {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
+    </script>
 </head>
-<body>
+<body class="dashboard-page">
 
-<div class="app-container">
-    <aside class="sidebar">
-        <div class="sidebar-logo">Q by Q</div>
-        
-        <nav class="nav-links">
-            <a href="dashboard.html" class="nav-item active">
-                <i class="fas fa-home"></i> <span>Dashboard</span>
-            </a>
-            <a href="index.html" class="nav-item">
-                <i class="fas fa-book"></i> <span>Practice</span>
-            </a>
-            <a href="saved.html" class="nav-item">
-                <i class="fas fa-bookmark"></i> <span>Saved</span>
-            </a>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <button id="authTopBtn" class="auth-btn logout-state">
-                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
-            </button>
-        </div>
-    </aside>
-
-    <div class="main-container">
-        <header class="top-nav">
-            <div id="userEmail" style="font-weight: 600; color: #34495e;">Loading user...</div>
-            <div class="date-display" id="currentDate"></div>
-        </header>
-
-        <main class="dashboard-content">
-            <div class="welcome-section">
-                <h1 style="font-size: 2.5rem; color: #2c3e50;">Welcome Back!</h1>
-                <p style="color: #7f8c8d;">Here is what's happening with your A-Level prep today.</p>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <script>
+                // Apply class directly to element to prevent layout shift
+                if (localStorage.getItem("sidebarCollapsed") === "true") {
+                    document.getElementById('sidebar').classList.add('collapsed');
+                }
+            </script>
+            
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Q<span>by</span>Q</div>
+                <button id="toggleSidebar" class="toggle-btn" title="Toggle Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
-
-            <div class="grid-layout">
-           <div class="dash-card">
-    <div class="stat-icon"><i class="fas fa-history"></i></div> <div class="label">Recent Activity</div> <div class="big-text" id="lastPaperText" style="font-size: 1.1rem; margin-bottom: 10px; line-height: 1.4;">
-        No Activity
+            
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-item active" title="Dashboard">
+                    <div class="icon-box"><i class="fas fa-home"></i></div>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="index.html" class="nav-item" title="Practice">
+                    <div class="icon-box"><i class="fas fa-book"></i></div>
+                    <span class="nav-text">Practice</span>
+                </a>
+                <a href="saved.html" class="nav-item" title="Saved">
+                    <div class="icon-box"><i class="fas fa-bookmark"></i></div>
+                    <span class="nav-text">Saved</span>
+                </a>
+            </nav>
+            
+      <div class="sidebar-footer">
+    <div id="userProfile" style="padding: 0 1.5rem; margin-bottom: 0.5rem; min-height: 1.2rem;">
+        <span id="userEmail" class="nav-text" style="font-size: 0.75rem; color: #94a3b8; display: block;"></span>
     </div>
-    <button id="resumeStudyBtn" class="auth-btn login-state btn-full" style="margin-top: 10px;">
-        Resume Studying
+    <button id="authTopBtn" class="auth-btn">
+        <div class="icon-box"><i class="fas fa-spinner fa-spin"></i></div>
+        <span class="nav-text">Checking...</span>
     </button>
 </div>
+        </aside>
 
-                <div class="dash-card">
-                    <div class="stat-icon" style="color: #3498db;"><i class="fas fa-clock"></i></div>
-                    <div class="label">Total Study Time</div>
-                    <div class="big-text" id="totalTime">00:00:00</div>
-                    
-                    <button id="totalResetBtn" class="reset-danger-btn" style="margin-top: 15px;">
-                        <i class="fas fa-trash-alt"></i> Reset All Time
-                    </button>
+        <main class="main-content">
+           
+
+            <div class="dashboard-content">
+                <div class="welcome-section">
+                    <h1>Welcome Back!</h1>
+                    <p>Here is what's happening with your A-Level prep today.</p>
+                </div>
+
+                <div class="grid-layout">
+                    <div class="dash-card">
+                        <div class="stat-icon"><i class="fas fa-history"></i></div>
+                        <div class="label">Recent Activity</div>
+                        <div class="big-text" id="lastPaperText">
+                            No recent activity found
+                        </div>
+                        <button id="resumeStudyBtn" class="btn-gate primary-bg btn-full" style="margin-top: 15px;">
+                            <i class="fas fa-play"></i> Resume Studying
+                        </button>
+                    </div>
+
+                    <div class="dash-card">
+                        <div class="stat-icon" style="color: #0ea5e9;"><i class="fas fa-clock"></i></div>
+                        <div class="label">Total Study Time</div>
+                        <div class="big-text" id="totalTime">00:00:00</div>
+                        
+                        <button id="totalResetBtn" class="reset-danger-btn" style="margin-top: 15px;">
+                            <i class="fas fa-trash-alt"></i> Reset All Time
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
-</div>
 
-<div id="logoutModal" class="modal">
-    <div class="modal-content logout-confirm-card">
-        <div class="gate-icon-circle" style="background-color: #fff1f2; color: #e11d48;">
-            <i class="fas fa-sign-out-alt"></i>
-        </div>
-        <h2 class="gate-title">Logging Out?</h2>
-        <p class="gate-description">Are you sure you want to end your session? You'll need to login again to access your saved questions.</p>
-        <div class="gate-actions">
-            <button id="confirmLogout" class="btn-gate" style="background: #e11d48; color: white; border: none;">Logout</button>
-            <button id="cancelLogout" class="btn-secondary-gate btn-gate">Stay Logged In</button>
+    <div id="logoutModal" class="modal">
+        <div class="modal-content logout-confirm-card">
+            <div class="gate-icon-circle danger">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h2 class="gate-title">Logging Out?</h2>
+            <p class="gate-description">Are you sure you want to end your session?</p>
+            <div class="gate-actions">
+                <button id="confirmLogout" class="btn-gate danger-bg">Logout</button>
+                <button id="cancelLogout" class="btn-gate secondary-bg">Stay</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="resetModal" class="modal">
-    <div class="modal-content logout-confirm-card">
-        <div class="gate-icon-circle" style="background-color: #fff1f2; color: #e11d48;">
-            <i class="fas fa-trash-alt"></i>
-        </div>
-        <h2 class="gate-title">Reset All Progress?</h2>
-        <p class="gate-description">This action is permanent. You will lose all banked study hours and your current session will be wiped clean.</p>
-        <div class="gate-actions">
-            <button id="confirmReset" class="btn-gate" style="background: #e11d48; color: white; border: none;">Reset Everything</button>
-            <button id="cancelReset" class="btn-secondary-gate btn-gate">Cancel</button>
+    <div id="resetModal" class="modal">
+        <div class="modal-content logout-confirm-card">
+            <div class="gate-icon-circle danger">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="gate-title">Reset All Progress?</h2>
+            <p class="gate-description">This action is permanent. Your banked study hours and session history will be wiped clean.</p>
+            <div class="gate-actions">
+                <button id="confirmReset" class="btn-gate danger-bg">Reset Everything</button>
+                <button id="cancelReset" class="btn-gate secondary-bg">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="js/dashboard.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -1,14 +1,22 @@
+require('dotenv').config(); // This MUST be at the very top of the file
+console.log("🔍 Checking Secret:", process.env.JWT_SECRET ? "✅ Found" : "❌ Not Found");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+
 
 const app = express();
 
 // --- 1. MIDDLEWARE ---
 // Explicitly allow your Vercel domain and localhost for development
 app.use(cors({
-    origin: ["https://q-by-q.vercel.app", "http://localhost:3000", "http://127.0.0.1:5500"],
+    origin: [
+        "https://q-by-q.vercel.app", 
+        "http://localhost:3000", 
+        "http://localhost:5000", // Add this if you view the site here
+        "http://127.0.0.1:5500", // Match Live Server exactly
+        "http://localhost:5500"  // Sometimes Live Server uses 'localhost'
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
@@ -28,15 +36,10 @@ const connectDB = async () => {
 };
 
 // --- 3. HEALTH CHECK ROUTE ---
-app.get("/api/health", async (req, res) => {
-    await connectDB();
-    res.status(200).json({ 
-        status: "success", 
-        message: "🚀 Backend is Running!",
-        dbStatus: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
-    });
+// Simple route to test if the server is alive
+app.get("/", (req, res) => {
+    res.send("Server is running perfectly on port 5000!");
 });
-
 // --- 4. API ROUTES ---
 // We call connectDB inside a middleware to ensure connection before every request
 app.use(async (req, res, next) => {
@@ -44,11 +47,9 @@ app.use(async (req, res, next) => {
     next();
 });
 
-const authRoutes = require("./routes/auth");
-const dashboardRoutes = require("./routes/dashboard");
 
-app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+
+
 
 // --- 5. GLOBAL ERROR HANDLER ---
 app.use((err, req, res, next) => {
@@ -61,4 +62,10 @@ app.use((err, req, res, next) => {
 });
 
 // --- 6. EXPORT FOR VERCEL ---
-module.exports = app;
+// At the end of server.js
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Server is running on http://localhost:${PORT}`);
+});
+
+module.exports = app; // Keep this for Vercel

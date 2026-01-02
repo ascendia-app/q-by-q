@@ -1,70 +1,98 @@
 /* =========================================
-   1. AUTHENTICATION GUARD
+   1. AUTHENTICATION & GLOBAL STATE
    ========================================= */
-(async function checkGlobalAuth() {
-    const token = localStorage.getItem("token");
-    const authBtn = document.getElementById("authTopBtn");
+const API_BASE_URL = "https://q-by-q.vercel.app/api";
 
-    if (!token) {
-        if (authBtn) {
-            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`;
-            authBtn.className = "auth-btn login-state";
-        }
-        window.location.href = "pleaselogin.html";
-        return;
+/**
+ * Sanitizes token and verifies with backend.
+ * Redirects to login if token is missing or invalid.
+ */
+async function checkAuth() {
+    let token = localStorage.getItem("token");
+    
+    if (token && (token.startsWith('"') || token.startsWith("'"))) {
+        token = token.substring(1, token.length - 1);
     }
 
-    // Set initial button state to Logout
-    if (authBtn) {
-        authBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout`;
-        authBtn.className = "auth-btn logout-state";
+    if (!token || token === "null" || token === "undefined" || token.length < 20) {
+        updateSidebarAuthBtn(false);
+        window.location.href = "pleaselogin.html"; 
+        return false; 
     }
 
     try {
-        const res = await fetch("https://q-by-q.vercel.app/api/dashboard/dashboard-data", {
-            headers: { "Authorization": `Bearer ${token}` }
+        const res = await fetch(`${API_BASE_URL}/auth/verify`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
         });
-        if (!res.ok && (res.status === 401 || res.status === 403)) {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
+
+        if (res.ok) {
+            const data = await res.json();
+            updateSidebarAuthBtn(true, data.email);
+            return true;
+        } else {
+            updateSidebarAuthBtn(true); 
+            return true;
         }
     } catch (err) {
-        console.warn("Auth server unreachable. Working in local mode.");
+        console.error("Auth Fetch Error:", err);
+        updateSidebarAuthBtn(true); 
+        return true; 
     }
-})();
+}
+
+function updateSidebarAuthBtn(isLoggedIn, email = "") {
+    const authBtn = document.getElementById("authTopBtn");
+    const userEmailEl = document.getElementById("userEmail");
+    if (!authBtn) return;
+
+    if (userEmailEl) userEmailEl.textContent = email;
+
+    if (isLoggedIn) {
+        authBtn.classList.add("logout-state");
+        authBtn.classList.remove("login-state");
+        authBtn.innerHTML = `
+            <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="nav-text">Logout</span>
+        `;
+    } else {
+        authBtn.classList.add("login-state");
+        authBtn.classList.remove("logout-state");
+        authBtn.innerHTML = `
+            <div class="icon-box"><i class="fas fa-sign-in-alt"></i></div>
+            <span class="nav-text">Login</span>
+        `;
+    }
+}
 
 /* =========================================
-   2. MAIN PAGE LOGIC
+   2. MAIN LIBRARY LOGIC
    ========================================= */
-document.addEventListener('DOMContentLoaded', () => {
-    // UI Elements
+document.addEventListener("DOMContentLoaded", async () => {
+    await checkAuth();
+
     const savedGrid = document.getElementById('savedGrid');
     const emptyState = document.getElementById('emptyState');
-    const modal = document.getElementById('previewModal');
-    const closeModal = document.querySelector('.close-modal');
-    
-    // Auth & Logout Elements
-    const authBtn = document.getElementById("authTopBtn");
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
-
-    // Clear All Elements (Optional but referenced in your snippet)
-    const clearAllBtn = document.getElementById('clearAllBtn');
+    const previewModal = document.getElementById('previewModal');
+    const modalImages = document.getElementById('modalImages');
+    const modalMS = document.getElementById('modalMS');
+    const modalTitle = document.getElementById('modalTitle');
+    const toggleMSBtn = document.getElementById('toggleModalMS');
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
     const clearAllModal = document.getElementById('clearAllModal');
-    const confirmClearBtn = document.getElementById('confirmClearBtn');
-    const cancelClearBtn = document.getElementById('cancelClearBtn');
 
     let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
 
-    // --- DATA HANDLING ---
+    if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
+
     function checkEmpty() {
-        if (!savedQuestions || savedQuestions.length === 0) {
+        if (savedQuestions.length === 0) {
             if (emptyState) emptyState.style.display = 'block';
-            if (savedGrid) {
-                savedGrid.style.display = 'none';
-                savedGrid.innerHTML = '';
-            }
+            if (savedGrid) savedGrid.style.display = 'none';
         } else {
             if (emptyState) emptyState.style.display = 'none';
             if (savedGrid) {
@@ -77,103 +105,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSavedQuestions() {
         if (!savedGrid) return;
         savedGrid.innerHTML = '';
+        const seasonMap = { 'febmar': 'Feb/March', 'mayjun': 'May/June', 'octnov': 'Oct/Nov' };
         
         savedQuestions.forEach((q, index) => {
             const card = document.createElement('div');
             card.className = 'saved-card';
+            const paperRef = `${seasonMap[q.season] || q.season} ${q.year} | V${q.variant}`;
+
             card.innerHTML = `
-                <button class="btn-remove" onclick="removeSaved(${index})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn-remove" onclick="removeSaved(${index})"><i class="fas fa-trash"></i></button>
                 <div class="card-badges">
-                    <span class="badge" style="color: #3498db">Math 9709</span>
+                    <span class="badge" style="color: #0ea5e9">Math 9709</span>
                     <span class="badge">${(q.paper || "QP").toUpperCase()}</span>
                 </div>
                 <h3>Question ${q.questionNum}</h3>
-                <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                    Var ${q.variant} | ${q.season} ${q.year}
-                </p>
+                <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.85rem;">${paperRef}</p>
                 <div class="card-actions">
-                    <button class="btn-view" onclick="openPreview(${index})">
-                        <i class="fas fa-eye"></i> Preview
-                    </button>
-                    <button class="btn-view secondary" onclick="jumpToPractice(${index})">
-                        <i class="fas fa-external-link-alt"></i> Practice
-                    </button>
-                </div>
-            `;
+                    <button class="btn-view" onclick="openPreview(${index})"><i class="fas fa-eye"></i> Preview</button>
+                    <button class="btn-view secondary-bg" onclick="jumpToPractice(${index})"><i class="fas fa-external-link-alt"></i> Practice</button>
+                </div>`;
             savedGrid.appendChild(card);
         });
     }
-
-    // --- NAVIGATION TO PRACTICE ---
-    window.jumpToPractice = (index) => {
-        const q = savedQuestions[index];
-        const lastPaperState = {
-            subject: q.subjectVal || "9709",
-            paper: q.paper,
-            year: q.year,
-            series: q.season,
-            variant: "v" + q.variant,
-            currentIndex: 0 
-        };
-        
-        localStorage.setItem('lastPaper', JSON.stringify(lastPaperState));
-        localStorage.setItem('jumpToQuestion', JSON.stringify({ num: q.questionNum }));
-        window.location.href = "index.html"; 
-    };
-
-    // --- PREVIEW LOGIC ---
-    window.openPreview = async (index) => {
-        const q = savedQuestions[index];
-        const modalImages = document.getElementById('modalImages');
-        const modalMS = document.getElementById('modalMS');
-        const modalTitle = document.getElementById('modalTitle');
-        
-        if (modalTitle) modalTitle.textContent = `Question ${q.questionNum}`;
-        if (modalImages) modalImages.innerHTML = '<p>Loading...</p>';
-        if (modalMS) {
-            modalMS.innerHTML = '';
-            modalMS.style.display = 'none';
-        }
-
-        const season = q.season || q.sea;
-        const yearCode = (season === "febmar" ? "m" : season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
-        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-        const pNum = paperMap[q.paper?.toLowerCase()] || q.paper?.replace(/\D/g, '') || "1";
-        const paperCode = pNum + q.variant;
-
-        const qFileBase = `images/${q.subjectVal || '9709'}_${yearCode}_qp_${paperCode}_q${q.questionNum}`;
-        const mFileBase = `images/${q.subjectVal || '9709'}_${yearCode}_ms_${paperCode}_q${q.questionNum}`;
-
-        const parts = ["", "a", "b", "c", "d", "e", "f", "g"];
-        let found = false;
-
-        for (const char of parts) {
-            const qPath = `${qFileBase}${char}.PNG`;
-            try {
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        if(!found && modalImages) { modalImages.innerHTML = ''; found = true; }
-                        
-                        const qImg = document.createElement('img');
-                        qImg.src = qPath; qImg.className = "preview-img";
-                        if (modalImages) modalImages.appendChild(qImg);
-                        
-                        const mImg = document.createElement('img');
-                        mImg.src = `${mFileBase}${char}.PNG`;
-                        mImg.className = "preview-img";
-                        if (modalMS) modalMS.appendChild(mImg);
-                        resolve();
-                    };
-                    img.onerror = reject;
-                    img.src = qPath;
-                });
-            } catch(e) { if(char !== "") break; }
-        }
-        if (modal) modal.style.display = "block";
-    };
 
     window.removeSaved = (index) => {
         savedQuestions.splice(index, 1);
@@ -181,37 +134,146 @@ document.addEventListener('DOMContentLoaded', () => {
         checkEmpty(); 
     };
 
-    // --- AUTH ACTIONS ---
-    if (authBtn) {
-        authBtn.onclick = () => {
-            if (authBtn.classList.contains('logout-state')) {
-                if (logoutModal) logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
-            }
+    window.jumpToPractice = (index) => {
+        const q = savedQuestions[index];
+        localStorage.setItem('lastPaper', JSON.stringify({
+            subjectCode: q.subjectVal,
+            paper: q.paper,
+            year: q.year,
+            series: q.season,
+            variant: "v" + q.variant,
+            currentIndex: q.questionNum - 1
+        }));
+        window.location.href = `index.html?paper=${q.paper}&year=${q.year}&series=${q.season}&variant=v${q.variant}&q=${q.questionNum - 1}`;
+    };
+
+    window.openPreview = async (index) => {
+        const q = savedQuestions[index];
+        if (!q) return;
+
+        modalTitle.textContent = `Question ${q.questionNum}`;
+        modalImages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        modalMS.innerHTML = '';
+        modalMS.style.display = 'none';
+        toggleMSBtn.textContent = "Show Mark Scheme";
+
+        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
+        const vNum = q.variant.toString().replace('v', '');
+        const pCode = (paperMap[q.paper.toLowerCase()] || q.paper) + vNum;
+        const yCode = (q.season === "febmar" ? "m" : q.season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
+        
+        const qFileBase = `images/${q.subjectVal}_${yCode}_qp_${pCode}_q${q.questionNum}`;
+        const mFileBase = `images/${q.subjectVal}_${yCode}_ms_${pCode}_q${q.questionNum}`;
+
+        let foundAtLeastOne = false;
+        const partLetters = ["", "a", "b", "c", "d", "e", "f"];
+
+        for (const char of partLetters) {
+            const qPath = `${qFileBase}${char}.PNG`;
+            const mPath = `${mFileBase}${char}.PNG`;
+
+            try {
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (!foundAtLeastOne) { modalImages.innerHTML = ''; foundAtLeastOne = true; }
+                        const qImg = document.createElement('img');
+                        qImg.src = qPath; 
+                        qImg.className = "preview-img";
+                        modalImages.appendChild(qImg);
+
+                        const mImg = document.createElement('img');
+                        mImg.src = mPath;
+                        mImg.className = "preview-ms-img";
+                        mImg.onerror = () => mImg.style.display = 'none';
+                        modalMS.appendChild(mImg);
+                        resolve();
+                    };
+                    img.onerror = () => reject();
+                    img.src = qPath;
+                });
+            } catch(e) {}
+        }
+
+        if (!foundAtLeastOne) {
+            modalImages.innerHTML = `<div class="error-msg">No images found for Q${q.questionNum}</div>`;
+        }
+        previewModal.style.display = "block";
+    };
+
+    if (toggleSidebar) {
+        toggleSidebar.onclick = () => {
+            sidebar.classList.toggle("collapsed");
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
         };
     }
 
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
+    if (toggleMSBtn) {
+        toggleMSBtn.onclick = () => {
+            const isHidden = modalMS.style.display === 'none';
+            modalMS.style.display = isHidden ? 'block' : 'none';
+            toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
         };
     }
 
-    if (cancelLogout) cancelLogout.onclick = () => {
-        if (logoutModal) logoutModal.style.display = 'none';
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+        clearAllBtn.onclick = () => { if(savedQuestions.length > 0) clearAllModal.style.display = 'flex'; };
+    }
+
+    document.getElementById('confirmClearBtn').onclick = () => {
+        savedQuestions = [];
+        localStorage.setItem('savedQuestions', "[]");
+        clearAllModal.style.display = 'none';
+        checkEmpty();
     };
 
-    // --- MODAL CLOSING ---
-    if (closeModal) closeModal.onclick = () => { if (modal) modal.style.display = "none"; };
-    
-    window.onclick = (e) => {
-        if (e.target === logoutModal) logoutModal.style.display = 'none';
-        if (e.target === modal) modal.style.display = 'none';
-        if (e.target === clearAllModal) clearAllModal.style.display = 'none';
+    document.getElementById('cancelClearBtn').onclick = () => {
+        clearAllModal.style.display = 'none';
     };
 
-    // Initialize
     checkEmpty();
+});
+
+/* =========================================
+   3. GLOBAL MODAL HANDLER
+   ========================================= */
+window.addEventListener('click', (e) => {
+    const logoutModal = document.getElementById('logoutModal');
+    const previewModal = document.getElementById('previewModal');
+    const clearAllModal = document.getElementById('clearAllModal');
+
+    if (e.target.closest('#authTopBtn')) {
+        const authBtn = e.target.closest('#authTopBtn');
+        if (authBtn.classList.contains('logout-state')) {
+            if (logoutModal) logoutModal.style.display = 'flex';
+        } else {
+            window.location.href = "pleaselogin.html";
+        }
+    }
+
+    if (e.target === logoutModal || e.target.id === 'cancelLogout') {
+        if (logoutModal) logoutModal.style.display = 'none';
+    }
+    if (e.target === previewModal || e.target.classList.contains('close-modal')) {
+        if (previewModal) previewModal.style.display = 'none';
+    }
+    if (e.target === clearAllModal) {
+        if (clearAllModal) clearAllModal.style.display = 'none';
+    }
+
+    if (e.target.id === 'confirmLogout') {
+        // CRITICAL FIX: Only remove session data, do NOT clear savedQuestions
+        localStorage.removeItem("token");
+        localStorage.removeItem("lastPaper"); 
+        window.location.href = "pleaselogin.html";
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") {
+        if(document.getElementById('previewModal')) document.getElementById('previewModal').style.display = "none";
+        if(document.getElementById('logoutModal')) document.getElementById('logoutModal').style.display = "none";
+        if(document.getElementById('clearAllModal')) document.getElementById('clearAllModal').style.display = "none";
+    }
 });

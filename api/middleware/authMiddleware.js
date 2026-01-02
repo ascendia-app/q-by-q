@@ -16,10 +16,10 @@ module.exports = function (req, res, next) {
     const token = authHeader.split(" ")[1];
 
     // 4. Verify the token using your secret from .env
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 5. Add the user data (id) to the request object
-    req.user = decoded;
+   // Ensure it's pulling the secret correctly
+// In api/middleware/authMiddleware.js
+const decoded = jwt.verify(token, process.env.JWT_SECRET); // Should NOT have || "secret"
+req.user = decoded.user; // This MUST match the { user: ... } structure in auth.js
     
     console.log("✅ Token verified for user:", req.user.id);
     next();

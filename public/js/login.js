@@ -1,71 +1,87 @@
+/* =========================================
+   DEBUG ENABLED - login.js (FIXED)
+   ========================================= */
 const API_BASE_URL = "https://q-by-q.vercel.app/api";
+
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
     const errorBanner = document.getElementById("errorMessage");
     const submitBtn = loginForm?.querySelector("button[type='submit']");
 
-    if (!loginForm) {
-        console.error("Error: Could not find element with ID 'loginForm'");
-        return;
-    }
-
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        // 1. Reset UI State
-        if (errorBanner) {
-            errorBanner.style.display = "none";
-            errorBanner.classList.remove("auth-error"); // Clean classes
+        // UI Reset
+        if (errorBanner) errorBanner.style.display = "none";
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Checking Server...";
         }
-        
-        // Update: Target .gate-input instead of .standard-input
-        const inputs = document.querySelectorAll(".gate-input");
-        inputs.forEach(i => i.classList.remove("input-error"));
 
-        // 2. Visual Loading State
-        const originalBtnText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Signing in...";
-
-        const email = document.getElementById("email").value;
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
 
-// ... existing code ...
-try {
-    // Port changed from 5000 to 5050 to match your server.js
-const res = await fetch(`${API_BASE_URL}/auth/login`, { 
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-});
-// ... rest of code ...
+        try {
+            console.log("1. Sending login request for:", email);
+            
+            const res = await fetch(`${API_BASE_URL}/auth/login`, { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
 
             const data = await res.json();
+            console.log("2. Server Response Data:", data);
 
-            if (res.ok) {
-                localStorage.setItem("token", data.token);
-                window.location.href = "dashboard.html"; 
+            // Check every possible place the token could be
+            const receivedToken = data.token || data.accessToken || (data.data && data.data.token);
+
+            if (res.ok && receivedToken) {
+                console.log("3. Token found! Length:", receivedToken.length);
+                
+                /** * CRITICAL FIX: 
+                 * Do NOT use localStorage.clear()! It deletes your 'savedQuestions' library.
+                 * Only remove the old token to ensure a fresh session.
+                 */
+                localStorage.removeItem("token"); 
+                localStorage.setItem("token", receivedToken);
+                
+                // Verify storage immediately
+                const check = localStorage.getItem("token");
+                if (check) {
+                    console.log("4. Successfully wrote to LocalStorage.");
+                    submitBtn.style.backgroundColor = "#28a745";
+                    submitBtn.textContent = "Redirecting...";
+                    
+                    setTimeout(() => {
+                        window.location.href = "index.html"; 
+                    }, 800);
+                } else {
+                    throw new Error("Browser blocked LocalStorage write.");
+                }
             } else {
-                showError(data.msg || "Email or password incorrect");
+                console.error("Login failed. Response was:", data);
+                showError(data.msg || "Invalid credentials or no token received.");
+                resetButton();
             }
         } catch (err) {
-            console.error("Fetch Error:", err);
-            showError("Server connection lost. Please check if the backend is running.");
-        } finally {
-            // 3. Reset Button State
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
+            console.error("Critical Error:", err);
+            showError("Network error or storage blocked. See console (F12).");
+            resetButton();
         }
     });
+
+    function resetButton() {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Sign In";
+        }
+    }
 
     function showError(message) {
         if (errorBanner) {
             errorBanner.textContent = message;
             errorBanner.style.display = "block";
-            errorBanner.classList.add("auth-error"); // Ensure it uses the new styling
         }
-        // Update: Target .gate-input
-        const inputs = document.querySelectorAll(".gate-input");
-        inputs.forEach(i => i.classList.add("input-error"));
     }
 });
