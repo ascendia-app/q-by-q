@@ -1,3 +1,5 @@
+
+
 /* =========================================
    1. AUTHENTICATION & GLOBAL STATE
    ========================================= */
@@ -180,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
             loadPaperBtn.disabled = true;
             loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
 
-            // Timeout forces the browser to render the "Loading..." text before the heavy loop starts
             setTimeout(() => {
                 const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
                 const pCode = (paperMap[paperSelect.value.toLowerCase()] || paperSelect.value) + variantSelect.value;
@@ -217,27 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
                             qNum++; loadNextQuestion();
                         };
-                        img.onerror = () => {
-                            // Reset Loading State
-                            loadPaperBtn.disabled = false;
-                            loadPaperBtn.innerHTML = originalBtnHTML;
-
-                            if (questions.length === 0) {
-                                if(notFoundModal) notFoundModal.style.display = 'flex';
-                                return; 
-                            }
-                            
-                            // Resume logic: Don't overwrite currentIndex if we are resuming
-                            const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
-                            if (resumeQ !== null) {
-                                currentIndex = parseInt(resumeQ);
-                            } else if (jumpTo) {
-                                const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
-                                if (foundIndex !== -1) currentIndex = foundIndex;
-                                localStorage.removeItem('jumpToQuestion');
-                            }
-                            renderUI();
-                        };
+                        img.onerror = () => finalizeLoading();
                         img.src = qPath;
                     };
 
@@ -245,14 +226,39 @@ document.addEventListener("DOMContentLoaded", () => {
                         questions.push({ number: qNum, images: parts, markImages: markParts });
                         qNum++; loadNextQuestion();
                     };
+
+                    const finalizeLoading = () => {
+                        loadPaperBtn.disabled = false;
+                        loadPaperBtn.innerHTML = originalBtnHTML;
+
+                        if (questions.length === 0) {
+                            if(notFoundModal) notFoundModal.style.display = 'flex';
+                            return; 
+                        }
+                        
+                        // JUMP/RESUME LOGIC: Only happens after full paper is in memory
+                        const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
+                        if (resumeQ !== null) {
+                            currentIndex = parseInt(resumeQ);
+                        } else if (jumpTo) {
+                            const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
+                            if (foundIndex !== -1) currentIndex = foundIndex;
+                            localStorage.removeItem('jumpToQuestion');
+                        }
+                        // Note: If normal recovery, currentIndex was already set before loadPaperBtn.click()
+                        
+                        renderUI();
+                    };
+
                     tryPart();
                 };
+
                 loadNextQuestion();
             }, 50);
         };
     }
 
-    // --- Variant & Auth Logic ---
+    // --- Variant & UI Logic ---
     const allVariants = [{ val: "1", text: "v1" }, { val: "2", text: "v2" }, { val: "3", text: "v3" }];
     function applyVariantRule() {
         const selectedSeason = seasonSelect.value;
@@ -282,11 +288,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
     }
-    document.getElementById('confirmLogout').onclick = () => {
-        localStorage.removeItem("token");
-        window.location.href = "pleaselogin.html";
-    };
-    document.getElementById('cancelLogout').onclick = () => document.getElementById('logoutModal').style.display = 'none';
+
+    const confirmLogout = document.getElementById('confirmLogout');
+    if (confirmLogout) {
+        confirmLogout.onclick = () => {
+            localStorage.removeItem("token");
+            window.location.href = "pleaselogin.html";
+        };
+    }
+
+    const cancelLogout = document.getElementById('cancelLogout');
+    if (cancelLogout) {
+        cancelLogout.onclick = () => document.getElementById('logoutModal').style.display = 'none';
+    }
 
     if (saveBtn) {
         saveBtn.onclick = () => {
@@ -421,6 +435,7 @@ if (resetBtn) {
     };
 }
 
+// Initialize Timer on Load
 const initialData = getTimerData();
 if (initialData.running) startInterval();
 updateTimerUI();
