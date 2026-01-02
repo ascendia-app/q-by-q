@@ -127,3 +127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
     }
     if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
+        window.onclick = (e) => {
+        if (e.target === logoutModal) logoutModal.style.display = 'none';
+        if (e.target === modal) modal.style.display = 'none';
+    };
