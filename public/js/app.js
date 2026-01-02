@@ -4,8 +4,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 const resumePaper = urlParams.get('paper');
 const resumeYear = urlParams.get('year');
-const resumeSeries = urlParams.get('series'); // Added for dashboard format
-const resumeVariant = urlParams.get('variant'); // Added for dashboard format
+const resumeSeries = urlParams.get('series');
+const resumeVariant = urlParams.get('variant');
 const resumeQ = urlParams.get('q');
 
 let questions = [];
@@ -26,7 +26,6 @@ async function checkAuth() {
     }
 
     try {
-        // Corrected to dashboard endpoint for a simple check
         const res = await fetch("https://q-by-q.vercel.app/api/dashboard/dashboard-data", {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -65,21 +64,6 @@ function updateSidebarAuthBtn(isLoggedIn) {
 document.addEventListener("DOMContentLoaded", () => {
     checkAuth();
 
-    const notFoundModal = document.getElementById('notFoundModal');
-    const closeNotFound = document.getElementById('closeNotFound');
-
-    if (closeNotFound && notFoundModal) {
-        closeNotFound.onclick = () => {
-            notFoundModal.style.display = 'none';
-        };
-    }
-
-    window.addEventListener('click', (e) => {
-        if (e.target === notFoundModal) {
-            notFoundModal.style.display = 'none';
-        }
-    });
-
     // UI Elements
     const questionNumberEl = document.getElementById("question-number");
     const questionContentEl = document.getElementById("question-content");
@@ -89,6 +73,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const markSchemeBtn = document.getElementById("markSchemeBtn");
     const markSchemeViewer = document.getElementById("markSchemeViewer");
     const saveBtn = document.getElementById('saveQuestionBtn');
+    const notFoundModal = document.getElementById('notFoundModal');
+    const closeNotFound = document.getElementById('closeNotFound');
 
     // Selection Elements
     const subjectSelect = document.getElementById("subjectSelect");
@@ -98,75 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const variantSelect = document.getElementById("variantSelect");
     const loadPaperBtn = document.getElementById("loadPaperBtn");
 
-    // --- Variant Logic ---
-    const allVariants = [
-        { val: "1", text: "v1" },
-        { val: "2", text: "v2" },
-        { val: "3", text: "v3" }
-    ];
-
-    function applyVariantRule() {
-        const selectedSeason = seasonSelect.value;
-        const savedVal = variantSelect.value;
-        
-        variantSelect.innerHTML = "";
-        if (selectedSeason === "febmar") {
-            variantSelect.innerHTML = `<option value="2">v2</option>`;
-            variantSelect.value = "2";
-            variantSelect.style.backgroundColor = "#f8fafc";
-        } else {
-            allVariants.forEach(v => {
-                const opt = document.createElement("option");
-                opt.value = v.val;
-                opt.textContent = v.text;
-                variantSelect.appendChild(opt);
-            });
-            variantSelect.style.backgroundColor = "";
-            if (["1", "2", "3"].includes(savedVal)) variantSelect.value = savedVal;
-        }
+    // Modal Events
+    if (closeNotFound && notFoundModal) {
+        closeNotFound.onclick = () => notFoundModal.style.display = 'none';
     }
-
-    if (seasonSelect) seasonSelect.addEventListener('change', applyVariantRule);
-
-    // Modal Elements
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
-    const authBtn = document.getElementById("authTopBtn");
-
-    if (authBtn) {
-        authBtn.onclick = () => {
-            if (authBtn.classList.contains('logout-state')) {
-                logoutModal.style.display = 'flex';
-            } else {
-                window.location.href = 'login.html';
-            }
-        };
-    }
-    if (confirmLogout) {
-        confirmLogout.onclick = () => {
-            localStorage.removeItem("token");
-            window.location.href = "pleaselogin.html";
-        };
-    }
-    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
 
     // --- Core Rendering Functions ---
-    function renderQuestionList() {
-        if(!questionList) return;
-        questionList.innerHTML = "";
-        questions.forEach((q, index) => {
-            const btn = document.createElement("button");
-            btn.textContent = q.number;
-            btn.className = index === currentIndex ? "question-btn active" : "question-btn";
-            btn.onclick = () => {
-                currentIndex = index;
-                renderUI();
-            };
-            questionList.appendChild(btn);
-        });
-    }
-
     function renderQuestion() {
         if (!questions[currentIndex]) return;
         const q = questions[currentIndex];
@@ -198,6 +121,30 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSaveButtonState();
     }
 
+    function renderUI() {
+        renderQuestion();
+        
+        if(questionList) {
+            questionList.innerHTML = "";
+            questions.forEach((q, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = q.number;
+                btn.className = index === currentIndex ? "question-btn active" : "question-btn";
+                btn.onclick = () => {
+                    currentIndex = index;
+                    renderUI();
+                };
+                questionList.appendChild(btn);
+            });
+        }
+
+        // NAVIGATION VISIBILITY LOGIC
+        if (prevBtn) prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
+        if (nextBtn) nextBtn.style.visibility = (currentIndex === questions.length - 1 || questions.length === 0) ? "hidden" : "visible";
+
+        saveState();
+    }
+
     function updateSaveButtonState() {
         if (!questions[currentIndex] || !saveBtn) return;
         const q = questions[currentIndex];
@@ -213,153 +160,142 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-function renderUI() {
-        renderQuestion();
-        renderQuestionList();
-        
-        // Handle Button Visibility
-        if (prevBtn) {
-            // Hide previous button if on the first question
-            prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
-        }
-        
-        if (nextBtn) {
-            // Hide next button if on the last question
-            nextBtn.style.visibility = (currentIndex === questions.length - 1) ? "hidden" : "visible";
-        }
-
-        saveState();
-    }
-
-    // UPDATED SAVE STATE FOR DASHBOARD FORMAT
     function saveState() {
-        if (!subjectSelect.value) return;
+        if (!subjectSelect.value || questions.length === 0) return;
         const state = {
             subject: subjectSelect.value, 
             paper: paperSelect.value,
             year: yearSelect.value, 
-            series: seasonSelect.value, // Maps to 'm_j' etc for dashboard
-            variant: "v" + variantSelect.value, // Maps to 'v2' for dashboard
+            series: seasonSelect.value,
+            variant: "v" + variantSelect.value,
             currentIndex: currentIndex
         };
-        // This is the key the dashboard reads
         localStorage.setItem("lastPaper", JSON.stringify(state));
     }
-function renderUI() {
-        renderQuestion();
-        renderQuestionList();
-        
-        // Handle Button Visibility
-        if (prevBtn) {
-            // Hide previous button if on the first question
-            prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
-        }
-        
-        if (nextBtn) {
-            // Hide next button if on the last question
-            nextBtn.style.visibility = (currentIndex === questions.length - 1) ? "hidden" : "visible";
-        }
 
-        saveState();
-    }
-if (loadPaperBtn) {
-    loadPaperBtn.onclick = () => {
-        // 1. IMMEDIATELY update UI
-        const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
-        loadPaperBtn.disabled = true;
-        loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
+    // --- Loading Logic ---
+    if(loadPaperBtn) {
+        loadPaperBtn.onclick = () => {
+            const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
+            loadPaperBtn.disabled = true;
+            loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
 
-        // 2. Use setTimeout to "force" the browser to show the text change
-        setTimeout(() => {
-            const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-            const pCode = (paperMap[paperSelect.value.toLowerCase()] || paperSelect.value) + variantSelect.value;
-            const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
-            
-            questions = [];
-            currentIndex = 0; 
-            let qNum = 1;
+            // Timeout forces the browser to render the "Loading..." text before the heavy loop starts
+            setTimeout(() => {
+                const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
+                const pCode = (paperMap[paperSelect.value.toLowerCase()] || paperSelect.value) + variantSelect.value;
+                const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
+                
+                questions = [];
+                let qNum = 1;
 
-            const loadNextQuestion = () => {
-                let parts = []; let markParts = []; let partIndex = 0;
-                const partLetters = "abcdefgh";
+                const loadNextQuestion = () => {
+                    let parts = []; let markParts = []; let partIndex = 0;
+                    const partLetters = "abcdefgh";
 
-                const tryPart = () => {
-                    const char = partLetters[partIndex];
-                    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
-                    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
-                    const img = new Image();
-                    img.onload = () => {
-                        parts.push(qPath); markParts.push(mPath);
-                        partIndex++; tryPart();
+                    const tryPart = () => {
+                        const char = partLetters[partIndex];
+                        const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
+                        const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
+                        const img = new Image();
+                        img.onload = () => {
+                            parts.push(qPath); markParts.push(mPath);
+                            partIndex++; tryPart();
+                        };
+                        img.onerror = () => {
+                            if (partIndex === 0) tryNoPart();
+                            else finishQuestion();
+                        };
+                        img.src = qPath;
                     };
-                    img.onerror = () => {
-                        if (partIndex === 0) tryNoPart();
-                        else finishQuestion();
-                    };
-                    img.src = qPath;
-                };
 
-                const tryNoPart = () => {
-                    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
-                    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
-                    const img = new Image();
-                    img.onload = () => {
-                        questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
+                    const tryNoPart = () => {
+                        const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
+                        const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
+                        const img = new Image();
+                        img.onload = () => {
+                            questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
+                            qNum++; loadNextQuestion();
+                        };
+                        img.onerror = () => {
+                            // Reset Loading State
+                            loadPaperBtn.disabled = false;
+                            loadPaperBtn.innerHTML = originalBtnHTML;
+
+                            if (questions.length === 0) {
+                                if(notFoundModal) notFoundModal.style.display = 'flex';
+                                return; 
+                            }
+                            
+                            // Resume logic: Don't overwrite currentIndex if we are resuming
+                            const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
+                            if (resumeQ !== null) {
+                                currentIndex = parseInt(resumeQ);
+                            } else if (jumpTo) {
+                                const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
+                                if (foundIndex !== -1) currentIndex = foundIndex;
+                                localStorage.removeItem('jumpToQuestion');
+                            }
+                            renderUI();
+                        };
+                        img.src = qPath;
+                    };
+
+                    const finishQuestion = () => {
+                        questions.push({ number: qNum, images: parts, markImages: markParts });
                         qNum++; loadNextQuestion();
                     };
-                    img.onerror = () => {
-                        // 3. RESET BUTTON when all questions are checked
-                        loadPaperBtn.disabled = false;
-                        loadPaperBtn.innerHTML = originalBtnHTML;
-
-                        if (questions.length === 0) {
-                            const modal = document.getElementById('notFoundModal');
-                            if(modal) modal.style.display = 'flex';
-                            return; 
-                        }
-                        
-                        // Resume/Jump logic
-                        const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
-                        if (resumeQ !== null) {
-                            currentIndex = parseInt(resumeQ);
-                        } else if (jumpTo) {
-                            const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
-                            if (foundIndex !== -1) currentIndex = foundIndex;
-                            localStorage.removeItem('jumpToQuestion');
-                        }
-                        renderUI();
-                    };
-                    img.src = qPath;
+                    tryPart();
                 };
+                loadNextQuestion();
+            }, 50);
+        };
+    }
 
-                const finishQuestion = () => {
-                    questions.push({ number: qNum, images: parts, markImages: markParts });
-                    qNum++; loadNextQuestion();
-                };
-                tryPart();
-            };
+    // --- Variant & Auth Logic ---
+    const allVariants = [{ val: "1", text: "v1" }, { val: "2", text: "v2" }, { val: "3", text: "v3" }];
+    function applyVariantRule() {
+        const selectedSeason = seasonSelect.value;
+        const savedVal = variantSelect.value;
+        variantSelect.innerHTML = "";
+        if (selectedSeason === "febmar") {
+            variantSelect.innerHTML = `<option value="2">v2</option>`;
+            variantSelect.value = "2";
+        } else {
+            allVariants.forEach(v => {
+                const opt = document.createElement("option");
+                opt.value = v.val; opt.textContent = v.text;
+                variantSelect.appendChild(opt);
+            });
+            if (["1", "2", "3"].includes(savedVal)) variantSelect.value = savedVal;
+        }
+    }
+    if (seasonSelect) seasonSelect.addEventListener('change', applyVariantRule);
 
-            loadNextQuestion();
-        }, 10); // A 10ms delay is enough to let the UI update
+    const authBtn = document.getElementById("authTopBtn");
+    if (authBtn) {
+        authBtn.onclick = () => {
+            if (authBtn.classList.contains('logout-state')) {
+                document.getElementById('logoutModal').style.display = 'flex';
+            } else {
+                window.location.href = 'login.html';
+            }
+        };
+    }
+    document.getElementById('confirmLogout').onclick = () => {
+        localStorage.removeItem("token");
+        window.location.href = "pleaselogin.html";
     };
-}
+    document.getElementById('cancelLogout').onclick = () => document.getElementById('logoutModal').style.display = 'none';
+
     if (saveBtn) {
         saveBtn.onclick = () => {
             if (questions.length === 0) return;
             const q = questions[currentIndex];
             const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
-            
             const existingIndex = savedQuestions.findIndex(sq => sq.id === currentId);
             if (existingIndex === -1) {
-                savedQuestions.push({
-                    id: currentId,
-                    subjectVal: subjectSelect.value,
-                    paper: paperSelect.value,
-                    year: yearSelect.value,
-                    season: seasonSelect.value,
-                    variant: variantSelect.value,
-                    questionNum: q.number
-                });
+                savedQuestions.push({ id: currentId, subjectVal: subjectSelect.value, paper: paperSelect.value, year: yearSelect.value, season: seasonSelect.value, variant: variantSelect.value, questionNum: q.number });
             } else {
                 savedQuestions.splice(existingIndex, 1);
             }
@@ -376,12 +312,10 @@ if (loadPaperBtn) {
         };
     }
 
-    // --- RECOVERY & DASHBOARD RESUME LOGIC ---
+    // --- RECOVERY LOGIC ---
     const lastPaper = JSON.parse(localStorage.getItem("lastPaper"));
-
-    // Prioritize URL params from Dashboard
     if (resumePaper && resumeYear) {
-        subjectSelect.value = "9709"; // Default subject
+        subjectSelect.value = "9709";
         paperSelect.value = resumePaper;
         yearSelect.value = resumeYear;
         seasonSelect.value = resumeSeries || "mayjun";
@@ -389,12 +323,12 @@ if (loadPaperBtn) {
         variantSelect.value = resumeVariant ? resumeVariant.replace('v', '') : "1";
         loadPaperBtn.click();
     } else if (lastPaper) {
-        subjectSelect.value = lastPaper.subject || "9709";
-        paperSelect.value = lastPaper.paper || "pure1";
-        yearSelect.value = lastPaper.year || "2024";
-        seasonSelect.value = lastPaper.series || "mayjun";
+        subjectSelect.value = lastPaper.subject;
+        paperSelect.value = lastPaper.paper;
+        yearSelect.value = lastPaper.year;
+        seasonSelect.value = lastPaper.series;
         applyVariantRule();
-        variantSelect.value = lastPaper.variant ? lastPaper.variant.replace('v', '') : "1";
+        variantSelect.value = lastPaper.variant.replace('v', '');
         currentIndex = lastPaper.currentIndex || 0;
         loadPaperBtn.click();
     } else {
@@ -487,7 +421,6 @@ if (resetBtn) {
     };
 }
 
-// Initialize Timer on load
 const initialData = getTimerData();
 if (initialData.running) startInterval();
 updateTimerUI();
