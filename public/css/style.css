@@ -1123,3 +1123,6 @@ body.auth-page {
     padding: 0.8rem 2rem; border-radius: 6px; cursor: pointer;
     margin-top: 1rem; font-weight: 600;
 }
+.fa-spin {
+    margin-right: 8px;
+}

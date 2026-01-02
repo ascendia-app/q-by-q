@@ -213,9 +213,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderUI() {
+function renderUI() {
         renderQuestion();
         renderQuestionList();
+        
+        // Handle Button Visibility
+        if (prevBtn) {
+            // Hide previous button if on the first question
+            prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
+        }
+        
+        if (nextBtn) {
+            // Hide next button if on the last question
+            nextBtn.style.visibility = (currentIndex === questions.length - 1) ? "hidden" : "visible";
+        }
+
         saveState();
     }
 
@@ -233,74 +245,22 @@ document.addEventListener("DOMContentLoaded", () => {
         // This is the key the dashboard reads
         localStorage.setItem("lastPaper", JSON.stringify(state));
     }
+function renderUI() {
+        renderQuestion();
+        renderQuestionList();
+        
+        // Handle Button Visibility
+        if (prevBtn) {
+            // Hide previous button if on the first question
+            prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
+        }
+        
+        if (nextBtn) {
+            // Hide next button if on the last question
+            nextBtn.style.visibility = (currentIndex === questions.length - 1) ? "hidden" : "visible";
+        }
 
-    if(loadPaperBtn) {
-        loadPaperBtn.onclick = () => {
-            const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-            const pCode = (paperMap[paperSelect.value.toLowerCase()] || paperSelect.value) + variantSelect.value;
-            const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
-            
-            questions = [];
-            currentIndex = 0; 
-            let qNum = 1;
-
-            const loadNextQuestion = () => {
-                let parts = []; let markParts = []; let partIndex = 0;
-                const partLetters = "abcdefgh";
-
-                const tryPart = () => {
-                    const char = partLetters[partIndex];
-                    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
-                    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
-                    const img = new Image();
-                    img.onload = () => {
-                        parts.push(qPath); markParts.push(mPath);
-                        partIndex++; tryPart();
-                    };
-                    img.onerror = () => {
-                        if (partIndex === 0) tryNoPart();
-                        else finishQuestion();
-                    };
-                    img.src = qPath;
-                };
-
-                const tryNoPart = () => {
-                    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
-                    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
-                    const img = new Image();
-                    img.onload = () => {
-                        questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
-                        qNum++; loadNextQuestion();
-                    };
-                    img.onerror = () => {
-                        if (questions.length === 0) {
-                            const modal = document.getElementById('notFoundModal');
-                            if(modal) modal.style.display = 'flex';
-                            return; 
-                        }
-                        
-                        // Handle Jump from Dashboard URL or LocalStorage
-                        const jumpTo = JSON.parse(localStorage.getItem('jumpToQuestion'));
-                        if (resumeQ !== null) {
-                            currentIndex = parseInt(resumeQ);
-                        } else if (jumpTo) {
-                            const foundIndex = questions.findIndex(q => q.number == jumpTo.num);
-                            if (foundIndex !== -1) currentIndex = foundIndex;
-                            localStorage.removeItem('jumpToQuestion');
-                        }
-                        renderUI();
-                    };
-                    img.src = qPath;
-                };
-
-                const finishQuestion = () => {
-                    questions.push({ number: qNum, images: parts, markImages: markParts });
-                    qNum++; loadNextQuestion();
-                };
-                tryPart();
-            };
-            loadNextQuestion();
-        };
+        saveState();
     }
 
     if (saveBtn) {
