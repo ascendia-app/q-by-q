@@ -439,3 +439,31 @@ if (resetBtn) {
 const initialData = getTimerData();
 if (initialData.running) startInterval();
 updateTimerUI();
+    // Close on outside click
+    window.onclick = (e) => {
+        if (e.target === logoutModal) logoutModal.style.display = 'none';
+        if (e.target === modal) modal.style.display = 'none';
+    };
+
+    checkEmpty();
+  const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const authBtn = document.getElementById("authTopBtn");
+
+    if (authBtn) {
+        authBtn.onclick = () => {
+            if (authBtn.classList.contains('logout-state')) {
+                logoutModal.style.display = 'flex';
+            } else {
+                window.location.href = 'login.html';
+            }
+        };
+    }
+    if (confirmLogout) {
+        confirmLogout.onclick = () => {
+            localStorage.removeItem("token");
+            window.location.href = "pleaselogin.html";
+        };
+    }
+    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
