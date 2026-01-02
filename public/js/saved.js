@@ -1,7 +1,7 @@
 /* =========================================
-   1. AUTHENTICATION GUARD & SIDEBAR
+   1. AUTHENTICATION GUARD
    ========================================= */
-(async function() {
+(async function checkGlobalAuth() {
     const token = localStorage.getItem("token");
     const authBtn = document.getElementById("authTopBtn");
 
@@ -43,8 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('previewModal');
     const closeModal = document.querySelector('.close-modal');
     
-    // Your Specific Modal Elements
-    
+    // Auth & Logout Elements
+    const authBtn = document.getElementById("authTopBtn");
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
+
+    // Clear All Elements (Optional but referenced in your snippet)
     const clearAllBtn = document.getElementById('clearAllBtn');
     const clearAllModal = document.getElementById('clearAllModal');
     const confirmClearBtn = document.getElementById('confirmClearBtn');
@@ -52,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
 
-    // --- INTEGRATED LOGOUT LOGIC ---
     // --- DATA HANDLING ---
     function checkEmpty() {
         if (!savedQuestions || savedQuestions.length === 0) {
@@ -105,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NAVIGATION TO PRACTICE ---
     window.jumpToPractice = (index) => {
         const q = savedQuestions[index];
-        // Ensure index.html loads the correct paper
         const lastPaperState = {
             subject: q.subjectVal || "9709",
             paper: q.paper,
@@ -127,10 +130,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalMS = document.getElementById('modalMS');
         const modalTitle = document.getElementById('modalTitle');
         
-        modalTitle.textContent = `Question ${q.questionNum}`;
-        modalImages.innerHTML = '<p>Loading...</p>';
-        modalMS.innerHTML = '';
-        modalMS.style.display = 'none';
+        if (modalTitle) modalTitle.textContent = `Question ${q.questionNum}`;
+        if (modalImages) modalImages.innerHTML = '<p>Loading...</p>';
+        if (modalMS) {
+            modalMS.innerHTML = '';
+            modalMS.style.display = 'none';
+        }
 
         const season = q.season || q.sea;
         const yearCode = (season === "febmar" ? "m" : season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
@@ -150,15 +155,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 await new Promise((resolve, reject) => {
                     const img = new Image();
                     img.onload = () => {
-                        if(!found) { modalImages.innerHTML = ''; found = true; }
+                        if(!found && modalImages) { modalImages.innerHTML = ''; found = true; }
+                        
                         const qImg = document.createElement('img');
                         qImg.src = qPath; qImg.className = "preview-img";
-                        modalImages.appendChild(qImg);
+                        if (modalImages) modalImages.appendChild(qImg);
                         
                         const mImg = document.createElement('img');
                         mImg.src = `${mFileBase}${char}.PNG`;
                         mImg.className = "preview-img";
-                        modalMS.appendChild(mImg);
+                        if (modalMS) modalMS.appendChild(mImg);
                         resolve();
                     };
                     img.onerror = reject;
@@ -166,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } catch(e) { if(char !== "") break; }
         }
-        modal.style.display = "block";
+        if (modal) modal.style.display = "block";
     };
 
     window.removeSaved = (index) => {
@@ -175,34 +181,37 @@ document.addEventListener('DOMContentLoaded', () => {
         checkEmpty(); 
     };
 
-    if (closeModal) closeModal.onclick = () => modal.style.display = "none";
-    
-    // Close on outside click
-    window.onclick = (e) => {
-        if (e.target === logoutModal) logoutModal.style.display = 'none';
-        if (e.target === modal) modal.style.display = 'none';
-    };
-
-    checkEmpty();
-});
-  const logoutModal = document.getElementById('logoutModal');
-    const confirmLogout = document.getElementById('confirmLogout');
-    const cancelLogout = document.getElementById('cancelLogout');
-    const authBtn = document.getElementById("authTopBtn");
-
+    // --- AUTH ACTIONS ---
     if (authBtn) {
         authBtn.onclick = () => {
             if (authBtn.classList.contains('logout-state')) {
-                logoutModal.style.display = 'flex';
+                if (logoutModal) logoutModal.style.display = 'flex';
             } else {
                 window.location.href = 'login.html';
             }
         };
     }
+
     if (confirmLogout) {
         confirmLogout.onclick = () => {
             localStorage.removeItem("token");
             window.location.href = "pleaselogin.html";
         };
     }
-    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
+
+    if (cancelLogout) cancelLogout.onclick = () => {
+        if (logoutModal) logoutModal.style.display = 'none';
+    };
+
+    // --- MODAL CLOSING ---
+    if (closeModal) closeModal.onclick = () => { if (modal) modal.style.display = "none"; };
+    
+    window.onclick = (e) => {
+        if (e.target === logoutModal) logoutModal.style.display = 'none';
+        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === clearAllModal) clearAllModal.style.display = 'none';
+    };
+
+    // Initialize
+    checkEmpty();
+});
