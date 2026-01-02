@@ -24,13 +24,21 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             console.log("1. Sending login request for:", email);
             
-            const res = await fetch(`${API_BASE_URL}/auth/login`, { 
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
+       const res = await fetch(`${API_BASE_URL}/auth/login`, { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+});
 
-            const data = await res.json();
+// ADD THIS CHECK:
+const contentType = res.headers.get("content-type");
+if (!contentType || !contentType.includes("application/json")) {
+    const text = await res.text(); // Get the HTML to see what the error is
+    console.error("Server returned HTML instead of JSON:", text);
+    throw new Error("Server Error: API route not found or crashed.");
+}
+
+const data = await res.json();
             console.log("2. Server Response Data:", data);
 
             // Check every possible place the token could be
