@@ -9,7 +9,8 @@
     }
 
     try {
-        const res = await fetch("https://q-by-q.vercel.app/api/auth/verify", {
+        // Updated to use the dashboard-data route which we know exists
+        const res = await fetch("/api/dashboard/dashboard-data", {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (!res.ok && (res.status === 401 || res.status === 403)) {
@@ -49,17 +50,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- AUTH UI ---
-
     if (authBtn) {
         authBtn.onclick = () => {
             if (authBtn.classList.contains('logout-state')) {
-                logoutModal.style.display = 'flex';
+                const logoutModal = document.getElementById('logoutModal');
+                if(logoutModal) logoutModal.style.display = 'flex';
             } else {
                 window.location.href = 'login.html';
             }
         };
     }
-       const logoutModal = document.getElementById('logoutModal');
+
     const confirmLogout = document.getElementById('confirmLogout');
     const cancelLogout = document.getElementById('cancelLogout');
     if (confirmLogout) {
@@ -68,7 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = "pleaselogin.html";
         };
     }
-    if (cancelLogout) cancelLogout.onclick = () => logoutModal.style.display = 'none';
+    if (cancelLogout) cancelLogout.onclick = () => {
+        document.getElementById('logoutModal').style.display = 'none';
+    };
 
     // --- DATA HANDLING ---
     function checkEmpty() {
@@ -88,10 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getFormattedSubtitle(q) {
-        const seasonMap = { "febmar": "Feb/March", "mayjun": "May/June", "octnov": "Oct/Nov" };
-        const seasonName = seasonMap[q.season.toLowerCase()] || q.season;
-        // Formats "pure1" to "Pure 1"
-        const formattedPaper = q.paper.charAt(0).toUpperCase() + q.paper.slice(1).replace(/(\d)/, ' $1');
+        const seasonMap = { 
+            "febmar": "Feb/March", 
+            "mayjun": "May/June", 
+            "octnov": "Oct/Nov",
+            "m_j": "May/June",
+            "o_n": "Oct/Nov",
+            "f_m": "Feb/March"
+        };
+        const seasonName = seasonMap[q.season?.toLowerCase()] || q.season || "";
+        const formattedPaper = q.paper.replace(/([a-zA-Z]+)(\d+)/, (match, p1, p2) => {
+            return p1.charAt(0).toUpperCase() + p1.slice(1) + " " + p2;
+        });
         return `${formattedPaper} | ${seasonName} ${q.year} | Var ${q.variant}`;
     }
 
@@ -108,18 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fas fa-trash"></i>
                 </button>
                 <div class="card-badges">
-                    <span class="badge" style="color: var(--blue)">Math 9709</span>
+                    <span class="badge" style="color: #3498db">Math 9709</span>
                     <span class="badge">${q.paper.toUpperCase()}</span>
                 </div>
                 <h3>Question ${q.questionNum}</h3>
-                <p class="gate-description" style="margin-bottom: 1rem;">
+                <p class="gate-description" style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
                     ${getFormattedSubtitle(q)}
                 </p>
                 <div class="card-actions">
                     <button class="btn-view" onclick="openPreview(${index})">
                         <i class="fas fa-eye"></i> Preview
                     </button>
-                    <button class="btn-view secondary" onclick="jumpToPractice(${index})" style="margin-left:5px; background:#f1f5f9; color:#475569;">
+                    <button class="btn-view secondary" onclick="jumpToPractice(${index})" style="margin-left:5px; background:#f1f5f9; color:#475569; border:none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
                         <i class="fas fa-external-link-alt"></i> Practice
                     </button>
                 </div>
@@ -128,8 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- PREVIEW LOGIC ---
-    window.openPreview = (index) => {
+    // --- PREVIEW LOGIC (FIXED ORDERING) ---
+    window.openPreview = async (index) => {
         const q = savedQuestions[index];
         const modalImages = document.getElementById('modalImages');
         const modalMS = document.getElementById('modalMS');
@@ -142,49 +153,55 @@ document.addEventListener('DOMContentLoaded', () => {
         modalMS.style.display = 'none';
         if (msBtn) msBtn.textContent = "Show Mark Scheme";
 
-        const yearCode = (q.season === "febmar" ? "m" : q.season === "mayjun" ? "s" : "w") + q.year.slice(2);
-        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
+        const season = q.season || q.sea;
+        const yearCode = (season === "febmar" ? "m" : season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
         
-        // Handle both "pure1" and raw "1" cases
+        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
         const pNum = paperMap[q.paper.toLowerCase()] || q.paper.replace(/\D/g, '');
         const paperCode = pNum + q.variant;
-        const subVal = q.subjectVal || q.id.split('_')[0] || "9709";
+        const subVal = q.subjectVal || "9709";
 
-        const baseQPath = `images/${subVal}_${yearCode}_qp_${paperCode}_q${q.questionNum}`;
-        const baseMPath = `images/${subVal}_${yearCode}_ms_${paperCode}_q${q.questionNum}`;
+        const basePath = `images/${subVal}_${yearCode}`;
+        const qFileBase = `${basePath}_qp_${paperCode}_q${q.questionNum}`;
+        const mFileBase = `${basePath}_ms_${paperCode}_q${q.questionNum}`;
 
-        // Attempt single image load
-        const singleImg = new Image();
-        singleImg.onload = () => {
-            if(document.getElementById('loadingText')) document.getElementById('loadingText').remove();
-            modalImages.innerHTML = `<img src="${baseQPath}.PNG" class="preview-img">`;
-            modalMS.innerHTML = `<img src="${baseMPath}.PNG" class="preview-img">`;
-        };
-        singleImg.onerror = () => {
-            // If single image fails, try parts a through h
-            const parts = "abcdefgh".split('');
-            let loadedAny = false;
+        // Load parts in strict sequence (a, b, c...)
+        const parts = ["", "a", "b", "c", "d", "e", "f", "g", "h"];
+        let foundAny = false;
 
-            parts.forEach(part => {
-                const qPartPath = `${baseQPath}${part}.PNG`;
-                const mPartPath = `${baseMPath}${part}.PNG`;
-                const partImg = new Image();
-                
-                partImg.onload = () => {
-                    if (!loadedAny) {
-                        if(document.getElementById('loadingText')) document.getElementById('loadingText').remove();
-                        modalImages.innerHTML = ''; 
-                        loadedAny = true;
-                    }
-                    const qI = document.createElement('img'); qI.src = qPartPath; qI.className = "preview-img";
-                    modalImages.appendChild(qI);
-                    const mI = document.createElement('img'); mI.src = mPartPath; mI.className = "preview-img";
-                    modalMS.appendChild(mI);
-                };
-                partImg.src = qPartPath;
-            });
-        };
-        singleImg.src = `${baseQPath}.PNG`;
+        for (const char of parts) {
+            const qPath = `${qFileBase}${char}.PNG`;
+            const mPath = `${mFileBase}${char}.PNG`;
+
+            try {
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (!foundAny) {
+                            modalImages.innerHTML = '';
+                            foundAny = true;
+                        }
+                        const qImg = document.createElement('img');
+                        qImg.src = qPath;
+                        qImg.className = "preview-img";
+                        modalImages.appendChild(qImg);
+
+                        const mImg = document.createElement('img');
+                        mImg.src = mPath;
+                        mImg.className = "preview-img";
+                        modalMS.appendChild(mImg);
+                        resolve();
+                    };
+                    img.onerror = () => reject();
+                    img.src = qPath;
+                });
+            } catch (err) {
+                // If we hit a missing part (and it's not the base image), stop looking for more parts
+                if (char !== "") break;
+            }
+        }
+
+        if (!foundAny) modalImages.innerHTML = "<p style='text-align:center; color:#e74c3c;'>Images not found for this question.</p>";
 
         modal.style.display = "block";
         document.body.style.overflow = "hidden";
@@ -202,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             num: q.questionNum
         };
         localStorage.setItem('jumpToQuestion', JSON.stringify(jumpData));
-        window.location.href = "index.html"; // Adjust to your practice page filename
+        window.location.href = "index.html"; 
     };
 
     // --- REMOVE & CLEAR LOGIC ---
@@ -240,6 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = (e) => {
         if (e.target === modal) closeModal.onclick();
         if (e.target === clearAllModal) clearAllModal.style.display = 'none';
+        if (e.target === document.getElementById('logoutModal')) {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
     };
 
     // --- MARK SCHEME TOGGLE ---
