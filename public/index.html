@@ -108,42 +108,48 @@
                     <option value="3">v3</option>
                 </select>
                 <button id="loadPaperBtn" class="primary">Load Paper</button>
+                <button id="toggleMF19Btn" class="secondary-btn" style="border-color: var(--teal); color: var(--teal); margin-left: 10px;">
+        <i class="fas fa-file-pdf"></i> Show MF19
+    </button>
             </section>
 
-            <div class="dashboard-content">
-      <section class="question-display">
-    <div class="question-header">
-        <h2 id="question-number">Select a Paper to Begin</h2>
-    </div>
-
-    <div id="active-question-note" class="active-note-box" style="display: none;">
-        <i class="fas fa-sticky-note"></i>
-        <span id="note-text-content"></span>
-    </div>
-
-    <div class="question-container">
-                        <button id="prevBtn" class="image-arrow left">&#9664;</button>
-                        <div id="question-content" class="question-content">
-                            </div>
-                        <button id="nextBtn" class="image-arrow right">&#9654;</button>
-                    </div>
-
-<div class="mark-btn-container"> 
-    <button class="primary" id="markSchemeBtn">
-        <i class="fas fa-eye"></i> Show Mark Scheme
-    </button>
-       <button class="secondary-btn" id="openNoteModalBtn" style="border-color: var(--teal); color: var(--teal);">
-        <i class="fas fa-pencil-alt"></i> Save with Note
-    </button>
-    <button class="secondary-btn" id="saveQuestionBtn">
-        <i class="far fa-bookmark"></i> Save
-    </button>
- 
-</div>
-
-                    <div id="markSchemeViewer" class="markscheme-viewer"></div>
-                </section>
+<div class="dashboard-content">
+    <div class="practice-workspace" style="display: flex; gap: 20px; align-items: flex-start; transition: all 0.3s ease;">
+        
+        <section class="question-display" id="mainQuestionArea" style="flex: 1; min-width: 0;">
+            <div class="question-header">
+                <h2 id="question-number">Select a Paper to Begin</h2>
             </div>
+
+            <div id="active-question-note" class="active-note-box" style="display: none;">
+                <i class="fas fa-sticky-note"></i>
+                <span id="note-text-content"></span>
+            </div>
+
+            <div class="question-container">
+                <button id="prevBtn" class="image-arrow left">&#9664;</button>
+                <div id="question-content" class="question-content"></div>
+                <button id="nextBtn" class="image-arrow right">&#9654;</button>
+            </div>
+
+            <div class="mark-btn-container"> 
+                <button class="primary" id="markSchemeBtn">
+                    <i class="fas fa-eye"></i> Show Mark Scheme
+                </button>
+                <button class="secondary-btn" id="openNoteModalBtn" style="border-color: var(--teal); color: var(--teal);">
+                    <i class="fas fa-pencil-alt"></i> Save with Note
+                </button>
+                <button class="secondary-btn" id="saveQuestionBtn">
+                    <i class="far fa-bookmark"></i> Save
+                </button>
+            </div>
+
+            <div id="markSchemeViewer" class="markscheme-viewer"></div>
+        </section>
+
+
+    </div>
+</div>
         </main>
     </div>
   <div id="logoutModal" class="modal">
@@ -189,6 +195,54 @@
         </div>
     </div>
 </div>
+<aside id="mf19SplitWindow" style="
+ display: none; 
+    position: fixed; 
+    top: 20px; 
+    left: 20px; 
+    width: 45%; 
+    height: 85vh; 
+
+    background: white; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    flex-direction: column; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+    z-index: 9999; 
+    will-change: transform; 
+    cursor: default;">
+    
+    <div id="mf19Handle" style="
+        padding: 12px 15px; 
+        background: #f8fafc; 
+        border-bottom: 1px solid #e2e8f0; 
+        display: flex; 
+    
+        justify-content: space-between; 
+        align-items: center;
+        cursor: move;">
+        <span style="font-weight: 600; color: #1e293b; pointer-events: none;">
+            <i class="fas fa-grip-vertical" style="margin-right: 8px; color: #94a3b8;"></i>
+            MF19 Formula Sheet
+        </span>
+        <button id="closeMF19Split" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">&times;</button>
+    </div>
+    
+<iframe id="mf19Iframe" src="pdfs/MF19.pdf" 
+            style="width: 100%; height: 100%; border: none;"></iframe>
+         <div id="mf19Resizer" style="
+        width: 20px; 
+        height: 20px; 
+        position: absolute; 
+        right: 0; 
+        bottom: 0; 
+        cursor: nwse-resize; 
+        z-index: 10001;
+        background: linear-gradient(135deg, transparent 50%, #02796b 50%);
+        border-bottom-right-radius: 12px;">
+    </div>
+</aside>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -438,6 +438,34 @@ const finalizeLoading = () => {
             localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
         };
     }
+    // --- MF19 Split Screen Logic ---
+// Inside DOMContentLoaded
+const toggleMF19Btn = document.getElementById('toggleMF19Btn');
+const mf19SplitWindow = document.getElementById('mf19SplitWindow');
+const closeMF19Split = document.getElementById('closeMF19Split');
+
+if (toggleMF19Btn) {
+    toggleMF19Btn.onclick = () => {
+        if (mf19SplitWindow.style.display === 'none' || mf19SplitWindow.style.display === '') {
+            mf19SplitWindow.style.display = 'flex'; // Uses flex for the internal layout
+            toggleMF19Btn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide MF19`;
+        } else {
+            mf19SplitWindow.style.display = 'none';
+            toggleMF19Btn.innerHTML = `<i class="fas fa-file-pdf"></i> Show MF19`;
+        }
+    };
+}
+
+// Close button inside the split window
+if (closeMF19Split) {
+    closeMF19Split.onclick = () => {
+        mf19SplitWindow.style.display = 'none';
+        if (toggleMF19Btn) {
+            toggleMF19Btn.innerHTML = `<i class="fas fa-file-pdf"></i> Show MF19`;
+            toggleMF19Btn.classList.remove('active-toggle');
+        }
+    };
+}
 });
 
 /* =========================================
@@ -545,3 +573,128 @@ if (resetBtn) {
 
 if (getTimerData().running) tInt = setInterval(updateTimerUI, 1000);
 updateTimerUI();
+function makeElementDraggable(el, handle) {
+    let currentX, currentY, initialX, initialY;
+    let xOffset = 0, yOffset = 0;
+    let active = false;
+    const iframe = document.getElementById('mf19Iframe');
+
+    handle.addEventListener("mousedown", dragStart);
+    document.addEventListener("mouseup", dragEnd);
+    document.addEventListener("mousemove", drag);
+
+    function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+
+        if (e.target === handle || handle.contains(e.target)) {
+            active = true;
+            el.style.transition = "none"; 
+            if (iframe) iframe.style.pointerEvents = 'none'; 
+        }
+    }
+
+    function dragEnd() {
+        initialX = currentX;
+        initialY = currentY;
+        active = false;
+        if (iframe) iframe.style.pointerEvents = 'auto';
+    }
+
+    function drag(e) {
+        if (active) {
+            e.preventDefault();
+
+            // Calculate requested position
+            let nextX = e.clientX - initialX;
+            let nextY = e.clientY - initialY;
+
+            // --- BOUNDARY CALCULATIONS ---
+            const rect = el.getBoundingClientRect();
+            
+            // Get the static starting position of the element
+            // We need this because translate3d moves relative to these coordinates
+            const originalLeft = el.offsetLeft;
+            const originalTop = el.offsetTop;
+
+            // Calculate the limits for X (Left and Right)
+            const minX = -originalLeft; 
+            const maxX = window.innerWidth - originalLeft - rect.width;
+
+            // Calculate the limits for Y (Top and Bottom)
+            const minY = -originalTop;
+            const maxY = window.innerHeight - originalTop - rect.height;
+
+            // Clamp the values
+            currentX = Math.max(minX, Math.min(nextX, maxX));
+            currentY = Math.max(minY, Math.min(nextY, maxY));
+
+            xOffset = currentX;
+            yOffset = currentY;
+
+            setTranslate(currentX, currentY, el);
+        }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+}
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.getElementById('mf19Iframe').style.pointerEvents = 'auto';
+    }
+
+// Initialize dragging in your DOMContentLoaded block
+document.addEventListener("DOMContentLoaded", () => {
+    const mf19Window = document.getElementById("mf19SplitWindow");
+    const mf19Handle = document.getElementById("mf19Handle");
+    if (mf19Window && mf19Handle) {
+        mf19Window.style.transform = `translate3d(0px, 0px, 0)`;
+        makeElementDraggable(mf19Window, mf19Handle);
+    }
+});
+function makeElementResizable(el) {
+    const resizer = document.getElementById('mf19Resizer');
+    const iframe = document.getElementById('mf19Iframe');
+    
+    resizer.addEventListener('mousedown', initResize);
+
+    function initResize(e) {
+        e.preventDefault();
+        window.addEventListener('mousemove', Resize);
+        window.addEventListener('mouseup', stopResize);
+        if (iframe) iframe.style.pointerEvents = 'none';
+    }
+
+    function Resize(e) {
+        // Calculate new dimensions based on mouse position and element offset
+        const newWidth = e.clientX - el.getBoundingClientRect().left;
+        const newHeight = e.clientY - el.getBoundingClientRect().top;
+
+        // Set minimum and maximum constraints
+        if (newWidth > 300 && newWidth < window.innerWidth - 50) {
+            el.style.width = newWidth + 'px';
+        }
+        if (newHeight > 200 && newHeight < window.innerHeight - 50) {
+            el.style.height = newHeight + 'px';
+        }
+    }
+
+    function stopResize() {
+        window.removeEventListener('mousemove', Resize);
+        window.removeEventListener('mouseup', stopResize);
+        if (iframe) iframe.style.pointerEvents = 'auto';
+    }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    const mf19Window = document.getElementById("mf19SplitWindow");
+    const mf19Handle = document.getElementById("mf19Handle");
+    
+    if (mf19Window && mf19Handle) {
+        makeElementDraggable(mf19Window, mf19Handle);
+        makeElementResizable(mf19Window); // Add this line
+    }
+});

@@ -692,17 +692,25 @@ body.ready .sidebar {
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
     padding: 1rem 2rem;
     background: var(--light);
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
+    /* Lower this z-index significantly */
+    z-index: 1 !important; 
+    /* Ensure no transforms are active here */
+    transform: none !important;
 }
 
+/* 2. Target the selects specifically */
 .paper-selection select {
     padding: 0.6rem 1rem;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--white);
+    position: relative;
+    z-index: 1 !important;
 }
 
 .question-display {
@@ -1238,7 +1246,11 @@ body {
     padding: 30px;
     max-width: 1200px;
 }
-
+.dashboard-content {
+    position: relative !important;
+    overflow: visible !important; 
+    z-index: 5; /* Lower than MF19 */
+}
 .welcome-section {
     margin-bottom: 30px;
 }
@@ -2092,6 +2104,8 @@ body.auth-page {
     .paper-selection {
         padding: 1rem;
         justify-content: center;
+        position: relative;
+    z-index: 10; /* Lower than 9999 */
     }
 
     .paper-selection select {
@@ -2263,4 +2277,45 @@ body.auth-page {
 #note-text-content {
     font-style: italic;
     line-height: 1.5;
+}
+/* Ensure the workspace takes full width */
+.practice-workspace {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Active state for the filter button */
+#toggleMF19Btn.active-toggle {
+    background-color: var(--teal) !important;
+    color: white !important;
+}
+
+/* Responsive: On tablets/phones, stack them instead of side-by-side */
+@media (max-width: 1024px) {
+    .practice-workspace {
+        flex-direction: column;
+    }
+ #mf19SplitWindow {
+    /* Transitions only for display, not for top/left to keep dragging smooth */
+    transition: opacity 0.2s ease;
+    z-index:  2147483647 !important; /* This is the maximum 32-bit integer z-index */
+    position: fixed !important;
+    transition: transform 0s, width 0.05s linear, height 0.05s linear;
+    min-width: 320px;
+    min-height: 250px;
+}
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+#mf19Resizer {
+    display: block !important;
+    /* This makes it look like those classic window resize ridges */
+    box-shadow: -1px -1px 0px #05b59a80; 
+}
+
+/* Ensure the iframe doesn't overlap the handle area */
+#mf19Iframe {
+    z-index: 1;
 }
