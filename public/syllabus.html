@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Syllabus | Q by Q</title>
+        <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="favicon.PNG">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+   <script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* --- Base Reset --- */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+
+        /* --- Layout Structure --- */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            max-width: calc(100vw - 250px);
+        }
+
+        /* --- Top Navigation / Progress --- */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .syllabus-stats { text-align: right; }
+        #completionRate { font-weight: bold; font-size: 0.9rem; }
+        .progress-bar-mini {
+            width: 200px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        #progressFill {
+            height: 100%;
+            width: 0%; /* Dynamic */
+            background: #3b82f6;
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* --- Selection Row --- */
+        .paper-selection {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .paper-selection select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        /* --- Syllabus Cards --- */
+        .topic-row {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .topic-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+        .topic-number {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* --- Subtopic List --- */
+        .subtopic-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid transparent;
+            transition: 0.2s;
+        }
+        
+        /* Highlight row if Mastered */
+/* --- Dynamic Subtopic Highlighting --- */
+        
+        /* Needs Work (Red) */
+        .subtopic-item:has(.dot.red.active) {
+            background: #fef2f2; /* Very light red */
+            border-left-color: #ef4444;
+        }
+
+        /* Unsure (Yellow) */
+        .subtopic-item:has(.dot.yellow.active) {
+            background: #fffbeb; /* Very light amber */
+            border-left-color: #f59e0b;
+        }
+
+        /* Confident (Green) */
+        .subtopic-item:has(.dot.green.active) {
+            background: #f0fdf4; /* Very light green */
+            border-left-color: #22c55e;
+        }
+
+        .check-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* --- Confidence Dots --- */
+        .confidence-dots {
+            display: flex;
+            gap: 15px;
+        }
+
+        .dot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 60px;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: 0.2s;
+        }
+        
+        .dot-wrapper:hover { opacity: 0.7; }
+        .dot-wrapper.active { opacity: 1; }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #22c55e; }
+
+        .status-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        .dot-wrapper.active .status-label { color: #1e293b; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .subtopic-item { grid-template-columns: 1fr; gap: 15px; }
+            .confidence-dots { justify-content: flex-start; }
+        }
+        .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #3b82f6; /* Matching the blue theme */
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    height: 41px; /* Matches the height of your select boxes */
+}
+
+.action-btn:hover {
+    background-color: #2563eb;
+}
+
+.action-btn i {
+    font-size: 0.9rem;
+}
+
+/* Animation for the icon */
+.spinning {
+    animation: spin 0.6s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Q<span>by</span>Q</div>
+            </div>
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-item">
+                    <div class="icon-box"><i class="fas fa-home"></i></div>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <div class="icon-box"><i class="fas fa-book"></i></div>
+                    <span class="nav-text">Practice</span>
+                </a>
+                <a href="syllabus.html" class="nav-item active">
+                    <div class="icon-box"><i class="fas fa-list-check"></i></div>
+                    <span class="nav-text">Syllabus</span>
+                </a>
+                <a href="saved.html" class="nav-item">
+                    <div class="icon-box"><i class="fas fa-bookmark"></i></div>
+                    <span class="nav-text">Saved</span>
+                </a>
+            </nav>
+              <div class="sidebar-footer">
+    <div id="userProfile" style="padding: 0 1.5rem; margin-bottom: 0.5rem; min-height: 1.2rem;">
+        <span id="userEmail" class="nav-text" style="font-size: 0.75rem; color: #94a3b8; display: block;"></span>
+    </div>
+    <button id="authTopBtn" class="auth-btn">
+        <div class="icon-box"><i class="fas fa-spinner fa-spin"></i></div>
+        <span class="nav-text">Checking...</span>
+    </button>
+</div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <div class="header-title">
+                    <h2 style="margin:0; font-size: 1.2rem;">Syllabus Checklist</h2>
+                </div>
+                <div class="syllabus-stats">
+                    <span id="completionRate">0% Confidence</span>
+                    <div class="progress-bar-mini">
+                        <div id="progressFill"></div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="paper-selection">
+                <select id="subjectSelectSyllabus">
+                    <option value="9709">Mathematics 9709</option>
+                </select>
+                <select id="paperSelectSyllabus">
+                    
+                    <option value="p3" selected>Pure Mathematics 3</option>
+                
+                    <option value="s1">Probability & Statistics 1</option>
+                </select>
+                <button id="loadSyllabusBtn" class="action-btn">
+        <i class="fas fa-rotate"></i> Load Progress
+    </button>
+            </section>
+
+            <div class="dashboard-content">
+                <div class="syllabus-container">
+
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.1</span>
+        <h3>Algebra</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand $|x|$, sketch $y = |ax + b|$, and solve equations/inequalities using $|a|=|b| \Leftrightarrow a^2=b^2$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Divide polynomials (up to degree 4) by linear or quadratic factors; identify quotient and remainder</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use the Factor Theorem and the Remainder Theorem</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Partial fractions: linear, repeating, and quadratic factors in the denominator</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Binomial expansion of $(1+x)^n$ for rational $n$ where $|x| < 1$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.2</span>
+        <h3>Logarithmic & Exponential Functions</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the relationship between logarithms and indices, and use laws of logarithms (excluding change of base)</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the definition and properties of $e^x$ and $\ln x$, including their relationship as inverse functions and their graphs</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use logarithms to solve equations and inequalities in which the unknown appears in indices</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use logarithms to transform a given relationship to linear form to determine unknown constants via gradient/intercept</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.3</span>
+        <h3>Trigonometry</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the relationship of secant, cosecant, and cotangent to cos, sin, and tan; use properties and graphs of all six functions</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use identities $\sec^2 \theta \equiv 1 + \tan^2 \theta$ and $\text{cosec}^2 \theta \equiv 1 + \cot^2 \theta$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use expansions of $\sin(A \pm B)$, $\cos(A \pm B)$, and $\tan(A \pm B)$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use double angle formulae for $\sin 2A$, $\cos 2A$, and $\tan 2A$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Express $a \sin \theta + b \cos \theta$ in the forms $R \sin(\theta \pm \alpha)$ and $R \cos(\theta \pm \alpha)$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.4</span>
+        <h3>Differentiation</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use the derivatives of $e^x$, $\ln x$, $\sin x$, $\cos x$, $\tan x$, $\tan^{-1} x$, together with constant multiples, sums, differences and composites</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Differentiate products and quotients</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Find and use the first derivative of a function which is defined parametrically or implicitly</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.5</span>
+        <h3>Integration</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Extend the idea of 'reverse differentiation' to include the integration of $e^{ax+b}$, $\frac{1}{ax+b}$, $\sin(ax+b)$, $\cos(ax+b)$, $\sec^2(ax+b)$ and $\frac{1}{x^2+a^2}$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use trigonometrical relationships in carrying out integration</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Integrate rational functions by means of decomposition into partial fractions</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Recognise an integrand of the form $\frac{kf'(x)}{f(x)}$, and integrate such functions</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Recognise when an integrand can usefully be regarded as a product, and use integration by parts</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.6</span>
+        <h3>Numerical solution of equations</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Locate approximately a root of an equation, by means of graphical considerations and/or searching for a sign change</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the idea of, and use the notation for, a sequence of approximations which converges to a root of an equation</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand how a given simple iterative formula of the form $x_{n+1} = \text{F}(x_n)$ relates to the equation being solved, and use a given iteration, or an iteration based on a given rearrangement of an equation, to determine a root to a prescribed degree of accuracy</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+            </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.7</span>
+        <h3>Vectors</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use standard notation for vectors, $\binom{x}{y}$, $x\mathbf{i} + y\mathbf{j}$, $\begin{pmatrix} x \\ y \\ z \end{pmatrix}$, $x\mathbf{i} + y\mathbf{j} + z\mathbf{k}$, $\overrightarrow{AB}$, $\mathbf{a}$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Carry out addition and subtraction of vectors and multiplication of a vector by a scalar, and interpret these operations in geometrical terms</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Calculate the magnitude of a vector, and use unit vectors, displacement vectors and position vectors</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the significance of all the symbols used when the equation of a straight line is expressed in the form $\mathbf{r} = \mathbf{a} + t\mathbf{b}$, and find the equation of a line, given sufficient information</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Determine whether two lines are parallel, intersect or are skew, and find the point of intersection of two lines when it exists</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use formulae to calculate the scalar product of two vectors, and use scalar products in problems involving lines and points</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.8</span>
+        <h3>Differential equations</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Formulate a simple statement involving a rate of change as a differential equation</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Find by integration a general form of solution for a first order differential equation in which the variables are separable</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use an initial condition to find a particular solution</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Interpret the solution of a differential equation in the context of a problem being modelled by the equation</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="topic-row">
+    <div class="topic-info">
+        <span class="topic-number">3.9</span>
+        <h3>Complex numbers</h3>
+    </div>
+    <div class="subtopic-list">
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand the idea of a complex number, recall the meaning of real part, imaginary part, modulus, argument, and conjugate, and use the fact that two complex numbers are equal if and only if both real and imaginary parts are equal</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Carry out operations of addition, subtraction, multiplication and division of two complex numbers expressed in Cartesian form $x + iy$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Use the result that, for a polynomial equation with real coefficients, any non-real roots occur in conjugate pairs</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Represent complex numbers geometrically by means of an Argand diagram</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+        
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Carry out operations of multiplication and division of two complex numbers expressed in polar form $r(\cos \theta + i \sin \theta) \equiv re^{i\theta}$</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Find the two square roots of a complex number</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Understand in simple terms the geometrical effects of conjugating a complex number and of adding, subtracting, multiplying and dividing two complex numbers</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+
+        <div class="subtopic-item">
+            <div class="subtopic-text">
+                <span>Illustrate simple equations and inequalities involving complex numbers by means of loci in an Argand diagram</span>
+            </div>
+            <div class="confidence-dots">
+                <div class="dot-wrapper"><span class="dot red"></span><span class="status-label">needs work</span></div>
+                <div class="dot-wrapper"><span class="dot yellow"></span><span class="status-label">unsure</span></div>
+                <div class="dot-wrapper"><span class="dot green"></span><span class="status-label">confident</span></div>
+            </div>
+        </div>
+            </div>
+</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="js/syllabus.js"></script>
+</body>
+
+</html>

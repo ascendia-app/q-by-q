@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +14,14 @@
          * Executes before the DOM is even drawn to ensure the sidebar
          * starts in the user's preferred state (collapsed or expanded).
          */
-        (function() {
+        (function () {
             if (localStorage.getItem("sidebarCollapsed") === "true") {
                 document.documentElement.classList.add('sidebar-is-collapsed');
             }
         })();
     </script>
 </head>
+
 <body class="dashboard-page">
 
     <div class="app-container">
@@ -30,14 +32,14 @@
                     document.getElementById('sidebar').classList.add('collapsed');
                 }
             </script>
-            
+
             <div class="sidebar-header">
                 <div class="sidebar-logo">Q<span>by</span>Q</div>
                 <button id="toggleSidebar" class="toggle-btn" title="Toggle Sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
-            
+
             <nav class="nav-links">
                 <a href="dashboard.html" class="nav-item active" title="Dashboard">
                     <div class="icon-box"><i class="fas fa-home"></i></div>
@@ -47,22 +49,26 @@
                     <div class="icon-box"><i class="fas fa-book"></i></div>
                     <span class="nav-text">Practice</span>
                 </a>
+                <a href="syllabus.html" class="nav-item">
+                    <div class="icon-box"><i class="fas fa-list-check"></i></div>
+                    <span class="nav-text">Syllabus</span>
+                </a>
                 <a href="saved.html" class="nav-item" title="Saved">
                     <div class="icon-box"><i class="fas fa-bookmark"></i></div>
                     <span class="nav-text">Saved</span>
                 </a>
             </nav>
-            
-      <div class="sidebar-footer">
-    <button id="authTopBtn" class="auth-btn">
-        <div class="icon-box"><i class="fas fa-spinner fa-spin"></i></div>
-        <span class="nav-text">Checking...</span>
-    </button>
-</div>
+
+            <div class="sidebar-footer">
+                <button id="authTopBtn" class="auth-btn">
+                    <div class="icon-box"><i class="fas fa-spinner fa-spin"></i></div>
+                    <span class="nav-text">Checking...</span>
+                </button>
+            </div>
         </aside>
 
         <main class="main-content">
-           
+
 
             <div class="dashboard-content">
                 <div class="welcome-section">
@@ -86,7 +92,7 @@
                         <div class="stat-icon" style="color: #0ea5e9;"><i class="fas fa-clock"></i></div>
                         <div class="label">Total Study Time</div>
                         <div class="big-text" id="totalTime">00:00:00</div>
-                        
+
                         <button id="totalResetBtn" class="reset-danger-btn" style="margin-top: 15px;">
                             <i class="fas fa-trash-alt"></i> Reset All Time
                         </button>
@@ -116,7 +122,8 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <h2 class="gate-title">Reset All Progress?</h2>
-            <p class="gate-description">This action is permanent. Your banked study hours and session history will be wiped clean.</p>
+            <p class="gate-description">This action is permanent. Your banked study hours and session history will be
+                wiped clean.</p>
             <div class="gate-actions">
                 <button id="confirmReset" class="btn-gate danger-bg">Reset Everything</button>
                 <button id="cancelReset" class="btn-gate secondary-bg">Cancel</button>
@@ -126,4 +133,5 @@
 
     <script src="js/dashboard.js"></script>
 </body>
+
 </html>

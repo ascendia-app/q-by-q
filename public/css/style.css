@@ -438,12 +438,21 @@ body {
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
     /* Fixes the overflow issue */
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;       /* Adds scrollbar only when content is too long */
+    overflow-x: hidden;
     flex-shrink: 0;
 }
-
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
 /* Collapsed State */
 .sidebar.collapsed {
     width: 75px;
@@ -458,11 +467,13 @@ body {
 
 .sidebar-header {
     height: 80px;
+    flex-shrink: 0;        /* IMPORTANT: Prevents the header from squishing */
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 15px;
-    /* Reduced for better centering when collapsed */
+    background: var(--sidebar-bg); /* Match your sidebar color */
+    z-index: 10;
 }
 
 body.ready .sidebar {
@@ -488,6 +499,7 @@ body.ready .sidebar {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-shrink: 0; /* Keep nav links from squishing */
     padding: 10px 0;
 }
 
@@ -594,9 +606,31 @@ body.ready .sidebar {
 
 /* Sidebar Question List Integration */
 .sidebar-questions {
-    flex: 1;
-
+    flex-grow: 1;          /* Take up all available middle space */
+    overflow-y: auto;      /* Only the questions will scroll */
+    overflow-x: hidden;
+    scrollbar-width: thin; /* For Firefox */
 }
+.sidebar-questions {
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: transparent transparent; /* Hide by default on Firefox */
+    transition: scrollbar-color 0.3s;
+}
+
+/* Show on hover */
+.sidebar-questions:hover {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Chrome/Safari version */
+.sidebar-questions::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.sidebar-questions:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 
 .question-list {
     display: grid;
