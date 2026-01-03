@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function handleSaveAction(note = null) {
         let token = localStorage.getItem("token");
         if (!token || token.length < 20) {
-            window.location.href = "login.html";
+            window.location.href = "pleaselogin.html";
             return;
         }
         if (questions.length === 0) return;
@@ -444,7 +444,7 @@ window.addEventListener('click', (e) => {
         if (authBtn.classList.contains('logout-state')) {
             if (logoutModal) logoutModal.style.display = 'flex';
         } else {
-            window.location.href = "login.html";
+            window.location.href = "pleaselogin.html";
         }
         return;
     }
@@ -456,7 +456,7 @@ window.addEventListener('click', (e) => {
     if (e.target.id === 'confirmLogout') {
         localStorage.removeItem("token");
         localStorage.removeItem("lastPaper"); 
-        window.location.href = "login.html";
+        window.location.href = "pleaselogin.html";
     }
 
     if (e.target === noteModal) {
