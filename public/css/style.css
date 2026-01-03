@@ -2353,3 +2353,198 @@ body.auth-page {
 #mf19Iframe {
     z-index: 1;
 }
+/* The container (gray background) */
+.progress-bar-mini {
+    width: 250px;           /* Fixed width or 100% */
+    height: 10px;           /* Must have a height */
+    background: #e2e8f0;    /* Light gray */
+    border-radius: 50px;
+    overflow: hidden;       /* Ensures the fill stays inside rounded corners */
+    margin-top: 8px;
+    position: relative;
+}
+
+/* The actual bar that moves */
+#progressFill {
+    height: 100%;
+    width: 0%;              /* Initial state */
+    background: #3b82f6;    /* Default Blue */
+    display: block;         /* Crucial for div behavior */
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease;
+    border-radius: 50px;
+}    /* --- Base Reset --- */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    
+    /* Sleek Blue Gradient */
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    
+    /* Shape & Border */
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    
+    /* Smooth Transitions */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+}
+
+.action-btn:hover {
+    /* Subtle Lift & Glow */
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.05);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+}
+
+.action-btn:active {
+    /* Click Depression Effect */
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn i {
+    font-size: 0.95rem;
+    transition: transform 0.2s ease;
+}
+
+/* --- The Animation for the "Load" Icon --- */
+.spinning {
+    animation: rotate-sync 0.8s linear infinite;
+}
+
+@keyframes rotate-sync {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+        /* --- Topic Card --- */
+        .topic-row {
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .topic-row:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            background-color: #f8fafc;
+            user-select: none;
+            gap: 12px;
+        }
+
+        .topic-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #1e293b;
+            flex-grow: 1;
+        }
+
+        .topic-number {
+            font-weight: 700;
+            color: #3b82f6;
+            background: #eff6ff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .toggle-icon {
+            font-size: 0.9rem;
+            color: #64748b;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- Collapsible Logic --- */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-out;
+            background-color: #ffffff;
+        }
+
+        .topic-row.active .collapsible-content {
+            max-height: 1000px; /* Large enough to fit content */
+        }
+
+        .topic-row.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .subtopic-list {
+            padding: 10px 20px 20px 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* --- Subtopic Items (GRID) --- */
+        .subtopic-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+            gap: 20px;
+        }
+
+        /* Dynamic Highlighting based on active dot */
+        .subtopic-item.status-red { background: #fef2f2; border-left-color: #ef4444; }
+        .subtopic-item.status-yellow { background: #fffbeb; border-left-color: #f59e0b; }
+        .subtopic-item.status-green { background: #f0fdf4; border-left-color: #22c55e; }
+
+        .subtopic-text { line-height: 1.5; font-size: 0.95rem; }
+
+        /* --- Confidence Dots --- */
+        .confidence-dots { display: flex; gap: 15px; }
+
+        .dot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 65px;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: 0.2s;
+        }
+
+        .dot-wrapper:hover { opacity: 0.6; }
+        .dot-wrapper.active { opacity: 1; }
+
+        .dot { width: 14px; height: 14px; border-radius: 50%; }
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #22c55e; }
+
+        .status-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .subtopic-item { grid-template-columns: 1fr; }
+            .confidence-dots { justify-content: space-between; }
+        }

@@ -1,0 +1,83 @@
+                    <div class="topic-row">
+                        <div class="topic-header" onclick="toggleTopic(this)">
+                            <div class="header-left">
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                                <span class="topic-number">3.1</span>
+                                <h3>Algebra</h3>
+                            </div>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="subtopic-list">
+                                <div class="subtopic-item">
+                                    <div class="subtopic-text">
+                                        <span>Understand $|x|$, sketch $y = |ax + b|$, and solve equations/inequalities
+                                            using $|a|=|b| \Leftrightarrow a^2=b^2$</span>
+                                    <div class="confidence-dots">
+                                        <div class="dot-wrapper"><span class="dot red"></span><span
+                                                class="status-label">needs work</span></div>
+                                        <div class="dot-wrapper"><span class="dot yellow"></span><span
+                                                class="status-label">unsure</span></div>
+                                        <div class="dot-wrapper"><span class="dot green"></span><span
+                                                class="status-label">confident</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="subtopic-item">
+                                    <div class="subtopic-text">
+                                        <span>Divide polynomials (up to degree 4) by linear or quadratic factors;
+                                            identify quotient and remainder</span>
+                                    <div class="confidence-dots">
+                                        <div class="dot-wrapper"><span class="dot red"></span><span
+                                                class="status-label">needs work</span></div>
+                                        <div class="dot-wrapper"><span class="dot yellow"></span><span
+                                                class="status-label">unsure</span></div>
+                                        <div class="dot-wrapper"><span class="dot green"></span><span
+                                                class="status-label">confident</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="subtopic-item">
+                                    <div class="subtopic-text">
+                                        <span>Use the Factor Theorem and the Remainder Theorem</span>
+                                    </div>
+                                    <div class="confidence-dots">
+                                        <div class="dot-wrapper"><span class="dot red"></span><span
+                                                class="status-label">needs work</span></div>
+                                        <div class="dot-wrapper"><span class="dot yellow"></span><span
+                                                class="status-label">unsure</span></div>
+                                        <div class="dot-wrapper"><span class="dot green"></span><span
+                                                class="status-label">confident</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="subtopic-item">
+                                    <div class="subtopic-text">
+                                        <span>Partial fractions: linear, repeating, and quadratic factors in the
+                                            denominator</span>
+                                    </div>
+                                    <div class="confidence-dots">
+                                        <div class="dot-wrapper"><span class="dot red"></span><span
+                                                class="status-label">needs work</span></div>
+                                        <div class="dot-wrapper"><span class="dot yellow"></span><span
+                                                class="status-label">unsure</span></div>
+                                        <div class="dot-wrapper"><span class="dot green"></span><span
+                                                class="status-label">confident</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="subtopic-item">
+                                    <div class="subtopic-text">
+                                        <span>Binomial expansion of $(1+x)^n$ for rational $n$ where $|x| < 1$</span>
+                                    </div>
+                                    <div class="confidence-dots">
+                                        <div class="dot-wrapper"><span class="dot red"></span><span
+                                                class="status-label">needs work</span></div>
+                                        <div class="dot-wrapper"><span class="dot yellow"></span><span
+                                                class="status-label">unsure</span></div>
+                                        <div class="dot-wrapper"><span class="dot green"></span><span
+                                                class="status-label">confident</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>

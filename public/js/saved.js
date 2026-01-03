@@ -73,14 +73,11 @@ function updateSidebarAuthBtn(isLoggedIn, email = "") {
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
 
-    const sidebar = document.getElementById("sidebar");
+ const sidebar = document.getElementById("sidebar");
     const toggleSidebar = document.getElementById("toggleSidebar");
-    const clearAllModal = document.getElementById('clearAllModal');
-
-    if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
-
-    // Initial check and render
-    checkEmpty();
+    if (localStorage.getItem("sidebarCollapsed") === "true") {
+        sidebar?.classList.add("collapsed");
+    }
 
     if (toggleSidebar) {
         toggleSidebar.onclick = () => {

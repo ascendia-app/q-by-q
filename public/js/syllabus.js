@@ -3,233 +3,251 @@
    ========================================= */
 const API_BASE_URL = "https://q-by-q.vercel.app/api";
 
-/**
- * Sanitizes token and verifies with backend.
- * Updates sidebar UI and redirects if session is invalid.
- */
 async function checkAuth() {
     let token = localStorage.getItem("token");
-    
-    // Clean token of extra quotes
     if (token && (token.startsWith('"') || token.startsWith("'"))) {
         token = token.substring(1, token.length - 1);
     }
-
-    // If no token, redirect to login
     if (!token || token === "null" || token === "undefined" || token.length < 20) {
-        updateSidebarAuthBtn(false);
-        window.location.href = "pleaselogin.html"; 
-        return false; 
+        window.location.href = "pleaselogin.html";
+        return false;
     }
-
     try {
         const res = await fetch(`${API_BASE_URL}/auth/verify`, {
             method: "GET",
-            headers: {
+            headers: { 
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         });
-
         if (res.ok) {
             const data = await res.json();
             updateSidebarAuthBtn(true, data.email);
             return true;
         } else {
-            // Token expired or invalid
-            updateSidebarAuthBtn(false);
             window.location.href = "pleaselogin.html";
             return false;
         }
     } catch (err) {
         console.error("Auth Fetch Error:", err);
-        // On server error, we allow the UI to show logged in to prevent loop, 
-        // but typically you'd handle this based on your security needs.
-        updateSidebarAuthBtn(true); 
-        return true; 
+        updateSidebarAuthBtn(true);
+        return true;
     }
 }
 
 function updateSidebarAuthBtn(isLoggedIn, email = "") {
     const authBtn = document.getElementById("authTopBtn");
-
+    const userEmailEl = document.getElementById("userEmail");
     if (!authBtn) return;
-
-
+    if (userEmailEl) userEmailEl.textContent = email;
     if (isLoggedIn) {
         authBtn.classList.add("logout-state");
         authBtn.classList.remove("login-state");
-        authBtn.innerHTML = `
-            <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
-            <span class="nav-text">Logout</span>
-        `;
+        authBtn.innerHTML = `<div class="icon-box"><i class="fas fa-sign-out-alt"></i></div><span class="nav-text">Logout</span>`;
     } else {
         authBtn.classList.add("login-state");
         authBtn.classList.remove("logout-state");
-        authBtn.innerHTML = `
-            <div class="icon-box"><i class="fas fa-sign-in-alt"></i></div>
-            <span class="nav-text">Login</span>
-        `;
-    }
-}
-
-/**
- * Handles clicks specifically for the Auth Button and Logout Modal
- */
-function handleAuthEvents(e) {
-    const logoutModal = document.getElementById('logoutModal');
-    const authBtn = e.target.closest('#authTopBtn');
-
-    if (authBtn) {
-        if (authBtn.classList.contains('logout-state')) {
-            if (logoutModal) logoutModal.style.display = 'flex';
-        } else {
-            window.location.href = "pleaselogin.html";
-        }
-        return;
-    }
-
-    if (e.target.id === 'confirmLogout') {
-        localStorage.removeItem("token");
-        localStorage.removeItem("lastPaper"); 
-        window.location.href = "pleaselogin.html";
-    }
-
-    if (e.target.id === 'cancelLogout' || e.target === logoutModal) {
-        if (logoutModal) logoutModal.style.display = 'none';
+        authBtn.innerHTML = `<div class="icon-box"><i class="fas fa-sign-in-alt"></i></div><span class="nav-text">Login</span>`;
     }
 }
 
 /* =========================================
-   2. MAIN SYLLABUS LOGIC
+   2. SYLLABUS FETCH & RENDER
    ========================================= */
-
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initial Setup
-    await checkAuth();
-    loadSyllabusData();
-    updateProgress();
-
-    // 2. Initial MathJax Rendering
-    if (window.MathJax) {
-        window.MathJax.typesetPromise().catch((err) => console.log('MathJax failed: ', err));
-    }
-
-    // 3. Handle "Load Progress" Button
+async function fetchAndRenderSyllabus() {
+    const paperSelect = document.getElementById('paperSelectSyllabus');
+    const container = document.getElementById('syllabusDisplayContainer');
     const loadBtn = document.getElementById('loadSyllabusBtn');
-    if (loadBtn) {
-        loadBtn.addEventListener('click', () => {
-            const icon = loadBtn.querySelector('i');
-            icon.classList.add('spinning');
-            
-            loadSyllabusData();
-            updateProgress();
+    
+    if (!paperSelect || !container) return;
 
-            if (window.MathJax) {
-                window.MathJax.typesetPromise();
-            }
-            
-            setTimeout(() => {
-                icon.classList.remove('spinning');
-            }, 600);
-        });
-    }
+    const paper = paperSelect.value;
+    
+    // PERSISTENCE: Save selection whenever we render
+    localStorage.setItem('selectedPaperSyllabus', paper);
 
-    // 4. Handle Confidence Dot Clicks
-    document.addEventListener('click', (e) => {
-        const wrapper = e.target.closest('.dot-wrapper');
+    const icon = loadBtn ? loadBtn.querySelector('i') : null;
+    if (icon) icon.classList.add('fa-spin');
+    if (container) container.style.opacity = "0.5";
+
+    try {
+        const response = await fetch('topics.html');
+        if (!response.ok) throw new Error('Could not find topics.html');
         
-        if (wrapper) {
-            const dot = wrapper.querySelector('.dot');
-            const group = wrapper.closest('.confidence-dots');
-            const allWrappersInGroup = group.querySelectorAll('.dot-wrapper');
-            const allDotsInGroup = group.querySelectorAll('.dot');
-            
-            if (dot.classList.contains('active')) {
-                dot.classList.remove('active');
-                wrapper.classList.remove('active');
-            } else {
-                allDotsInGroup.forEach(d => d.classList.remove('active'));
-                allWrappersInGroup.forEach(w => w.classList.remove('active'));
-                
-                dot.classList.add('active');
-                wrapper.classList.add('active');
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const template = doc.getElementById(`template-${paper}`);
+
+        if (template) {
+            container.innerHTML = template.innerHTML;
+            container.style.opacity = "1";
+            loadSyllabusProgress(); 
+            if (window.MathJax) {
+                window.MathJax.typesetPromise().catch((err) => console.log('MathJax Error:', err));
             }
-            
-            saveSyllabusData(); 
-            updateProgress();
+        } else {
+            container.innerHTML = `<p style="padding:20px;">Template for <b>${paper}</b> not found in topics.html</p>`;
+            container.style.opacity = "1";
+        }
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        container.innerHTML = "<p style='padding:20px; color:red;'>Error loading syllabus file.</p>";
+        container.style.opacity = "1";
+    } finally {
+        if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 600);
+    }
+}
+
+/* =========================================
+   3. PROGRESS & PERSISTENCE
+   ========================================= */
+function handleConfidenceClick(wrapper) {
+    const group = wrapper.closest('.confidence-dots');
+    const subItem = wrapper.closest('.subtopic-item');
+    const dot = wrapper.querySelector('.dot');
+    let color = dot.classList.contains('yellow') ? 'yellow' : (dot.classList.contains('green') ? 'green' : 'red');
+    const isAlreadyActive = wrapper.classList.contains('active');
+    group.querySelectorAll('.dot-wrapper').forEach(w => w.classList.remove('active'));
+    subItem.classList.remove('status-red', 'status-yellow', 'status-green');
+    if (!isAlreadyActive) {
+        wrapper.classList.add('active');
+        subItem.classList.add(`status-${color}`);
+    }
+    saveSyllabusProgress();
+    updateProgressBar();
+}
+
+function saveSyllabusProgress() {
+    const paper = document.getElementById('paperSelectSyllabus').value;
+    const progressData = {};
+    document.querySelectorAll('.subtopic-item').forEach((item, index) => {
+        const activeWrapper = item.querySelector('.dot-wrapper.active');
+        if (activeWrapper) {
+            const dot = activeWrapper.querySelector('.dot');
+            const color = dot.classList.contains('red') ? 'red' : (dot.classList.contains('yellow') ? 'yellow' : 'green');
+            progressData[index] = color;
         }
     });
+    localStorage.setItem(`syllabus_${paper}_progress`, JSON.stringify(progressData));
+}
 
-    // 5. Auth Event Listener
-    document.addEventListener('click', handleAuthEvents);
-});
+function loadSyllabusProgress() {
+    const paper = document.getElementById('paperSelectSyllabus').value;
+    const saved = JSON.parse(localStorage.getItem(`syllabus_${paper}_progress`) || "{}");
+    document.querySelectorAll('.subtopic-item').forEach((item, index) => {
+        item.classList.remove('status-red', 'status-yellow', 'status-green');
+        item.querySelectorAll('.dot-wrapper').forEach(w => w.classList.remove('active'));
+        const color = saved[index];
+        if (color) {
+            item.classList.add(`status-${color}`);
+            const targetDot = item.querySelector(`.dot.${color}`);
+            if (targetDot) targetDot.parentElement.classList.add('active');
+        }
+    });
+    updateProgressBar();
+}
 
-/* =========================================
-   3. DATA PERSISTENCE & UI UPDATES
-   ========================================= */
-
-function updateProgress() {
+function updateProgressBar() {
     const subtopics = document.querySelectorAll('.subtopic-item');
     let totalScore = 0;
-    const count = subtopics.length;
-    const maxPossibleScore = count * 100;
-
+    if (subtopics.length === 0) return;
     subtopics.forEach(item => {
-        const activeDot = item.querySelector('.dot.active');
+        const activeDot = item.querySelector('.dot-wrapper.active .dot');
         if (activeDot) {
             if (activeDot.classList.contains('green')) totalScore += 100;
             else if (activeDot.classList.contains('yellow')) totalScore += 50;
-            else if (activeDot.classList.contains('red')) totalScore += 10;
+            else totalScore += 10;
         }
     });
-
-    const percentage = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+    const percentage = Math.round((totalScore / (subtopics.length * 100)) * 100);
     const fill = document.getElementById('progressFill');
     const rateText = document.getElementById('completionRate');
-    
     if (fill && rateText) {
         fill.style.width = percentage + '%';
         rateText.innerText = `${percentage}% Confidence`;
-
-        if (percentage < 30) fill.style.background = '#ef4444';
-        else if (percentage < 70) fill.style.background = '#f59e0b';
+        if (percentage < 35) fill.style.background = '#ef4444';
+        else if (percentage < 75) fill.style.background = '#f59e0b';
         else fill.style.background = '#22c55e';
     }
 }
 
-function saveSyllabusData() {
-    const syllabusState = { confidence: {} };
-
-    document.querySelectorAll('.confidence-dots').forEach((group, index) => {
-        const activeDot = group.querySelector('.dot.active');
-        if (activeDot) {
-            const color = activeDot.classList.contains('red') ? 'red' : 
-                          activeDot.classList.contains('yellow') ? 'yellow' : 'green';
-            syllabusState.confidence[`conf-${index}`] = color;
-        }
-    });
-
-    localStorage.setItem('syllabus_p3_data', JSON.stringify(syllabusState));
+/* =========================================
+   4. UI INTERACTIONS & ACCORDION
+   ========================================= */
+function toggleTopic(header) {
+    const row = header.closest('.topic-row');
+    const content = row.querySelector('.collapsible-content');
+    const isActive = row.classList.toggle('active');
+    if (isActive) content.style.maxHeight = content.scrollHeight + "px";
+    else content.style.maxHeight = "0px";
 }
 
-function loadSyllabusData() {
-    const saved = localStorage.getItem('syllabus_p3_data');
-    if (!saved) return;
+/* =========================================
+   5. INIT & GLOBAL EVENT ROUTING
+   ========================================= */
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Check Auth
+    await checkAuth();
 
-    const data = JSON.parse(saved);
-    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-    document.querySelectorAll('.dot-wrapper').forEach(w => w.classList.remove('active'));
+    // 2. PERSISTENCE: Restore dropdown value before rendering
+    const paperSelect = document.getElementById('paperSelectSyllabus');
+    const savedPaper = localStorage.getItem('selectedPaperSyllabus');
+    if (paperSelect && savedPaper) {
+        paperSelect.value = savedPaper;
+    }
 
-    document.querySelectorAll('.confidence-dots').forEach((group, index) => {
-        const savedColor = data.confidence[`conf-${index}`];
-        if (savedColor) {
-            const dot = group.querySelector(`.dot.${savedColor}`);
-            const wrapper = dot?.closest('.dot-wrapper');
-            if (dot && wrapper) {
-                dot.classList.add('active');
-                wrapper.classList.add('active');
+    // 3. Initial Load
+    fetchAndRenderSyllabus();
+
+    // 4. Save persistence when user changes the dropdown manually
+    paperSelect?.addEventListener('change', () => {
+        localStorage.setItem('selectedPaperSyllabus', paperSelect.value);
+    });
+
+    // 5. Setup Load Button
+    document.getElementById('loadSyllabusBtn')?.addEventListener('click', fetchAndRenderSyllabus);
+
+    // 6. Sidebar Logic
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
+    if (toggleSidebar) {
+        toggleSidebar.onclick = () => {
+            sidebar.classList.toggle("collapsed");
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        };
+    }
+
+    // 7. Global Click Delegation
+    document.addEventListener('click', (e) => {
+        const dotWrapper = e.target.closest('.dot-wrapper');
+        if (dotWrapper) { handleConfidenceClick(dotWrapper); return; }
+
+        const authBtn = e.target.closest('#authTopBtn');
+        if (authBtn) {
+            if (authBtn.classList.contains('logout-state')) {
+                document.getElementById('logoutModal').style.display = 'flex';
+            } else {
+                window.location.href = "pleaselogin.html";
             }
+            return;
+        }
+        if (e.target.id === 'confirmLogout') { localStorage.removeItem("token"); window.location.href = "pleaselogin.html"; }
+        if (e.target.id === 'cancelLogout' || e.target.classList.contains('modal')) {
+            document.getElementById('logoutModal').style.display = 'none';
         }
     });
-}
+});
+const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    if (localStorage.getItem("sidebarCollapsed") === "true") {
+        sidebar?.classList.add("collapsed");
+    }
+
+    if (toggleSidebar) {
+        toggleSidebar.onclick = () => {
+            sidebar.classList.toggle("collapsed");
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        };
+    }

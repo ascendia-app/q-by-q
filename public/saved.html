@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saved Questions · Q by Q</title>
-    
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="icon" type="image/png" href="favicon.PNG">
+    <link rel="icon" type="image/png" href="favicon.PNG">
 </head>
+
 <body class="dashboard-page">
 
     <div class="app-container">
@@ -20,7 +21,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
-            
+
             <nav class="nav-links">
                 <a href="dashboard.html" class="nav-item" title="Dashboard">
                     <div class="icon-box"><i class="fas fa-home"></i></div>
@@ -29,17 +30,17 @@
                 <a href="index.html" class="nav-item" title="Practice">
                     <div class="icon-box"><i class="fas fa-book"></i></div>
                     <span class="nav-text">Practice</span>
-                                    <a href="syllabus.html" class="nav-item">
-                    <div class="icon-box"><i class="fas fa-list-check"></i></div>
-                    <span class="nav-text">Syllabus</span>
-                </a>
+                    <a href="syllabus.html" class="nav-item">
+                        <div class="icon-box"><i class="fas fa-list-check"></i></div>
+                        <span class="nav-text">Syllabus</span>
+                    </a>
                 </a>
                 <a href="saved.html" class="nav-item active" title="Saved">
                     <div class="icon-box"><i class="fas fa-bookmark"></i></div>
                     <span class="nav-text">Saved</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <button id="authTopBtn" class="auth-btn logout-state" title="Logout">
                     <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
@@ -66,7 +67,8 @@
                         <i class="far fa-bookmark"></i>
                     </div>
                     <h2 class="gate-title">Library Empty</h2>
-                    <p class="gate-description">Start practicing and bookmark questions for future review. Your saved questions will appear here.</p>
+                    <p class="gate-description">Start practicing and bookmark questions for future review. Your saved
+                        questions will appear here.</p>
                     <a href="index.html" class="btn-gate">Start Practice</a>
                 </div>
 
@@ -75,29 +77,30 @@
         </main>
     </div>
 
-<div id="previewModal" class="modal">
-    <div class="modal-content" style="max-width: 800px; width: 90%;">
-        <div class="modal-header">
-            <h2 id="modalTitle">Question Preview</h2>
-            <span class="close-modal" id="closePreviewBtn">&times;</span>
-        </div>
+    <div id="previewModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Question Preview</h2>
+                <span class="close-modal" id="closePreviewBtn">&times;</span>
+            </div>
 
-        <div id="modalNote" class="preview-note-container" style="display:none;">
-            <div class="note-label"><i class="fas fa-sticky-note"></i> Your Revision Note</div>
-            <p id="modalNoteText"></p>
-        </div>
+            <div id="modalNote" class="preview-note-container" style="display:none;">
+                <div class="note-label"><i class="fas fa-sticky-note"></i> Your Revision Note</div>
+                <p id="modalNoteText"></p>
+            </div>
 
-        <div id="modalImages"></div>
-        
-        <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px;">
-            <button id="toggleModalMS" class="btn-gate secondary-bg" style="flex: 1;">
-                <i class="fas fa-eye"></i> Show Mark Scheme
-            </button>
+            <div id="modalImages"></div>
+
+            <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px;">
+                <button id="toggleModalMS" class="btn-gate secondary-bg" style="flex: 1;">
+                    <i class="fas fa-eye"></i> Show Mark Scheme
+                </button>
+            </div>
+
+            <div id="modalMS" style="display:none; margin-top:20px; border-top:2px dashed #e2e8f0; padding-top:20px;">
+            </div>
         </div>
-        
-        <div id="modalMS" style="display:none; margin-top:20px; border-top:2px dashed #e2e8f0; padding-top:20px;"></div>
     </div>
-</div>
 
     <div id="clearAllModal" class="modal">
         <div class="modal-content logout-confirm-card">
@@ -105,7 +108,8 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <h2 class="gate-title">Clear Library?</h2>
-            <p class="gate-description">This will permanently remove all bookmarked questions. This action cannot be undone.</p>
+            <p class="gate-description">This will permanently remove all bookmarked questions. This action cannot be
+                undone.</p>
             <div class="gate-actions">
                 <button id="confirmClearBtn" class="btn-gate danger-bg">Delete All</button>
                 <button id="cancelClearBtn" class="btn-gate secondary-bg">Cancel</button>
@@ -129,4 +133,5 @@
 
     <script src="js/saved.js"></script>
 </body>
+
 </html>
