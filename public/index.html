@@ -111,26 +111,35 @@
             </section>
 
             <div class="dashboard-content">
-                <section class="question-display">
-                    <div class="question-header">
-                        <h2 id="question-number">Select a Paper to Begin</h2>
-                    </div>
+      <section class="question-display">
+    <div class="question-header">
+        <h2 id="question-number">Select a Paper to Begin</h2>
+    </div>
 
-                    <div class="question-container">
+    <div id="active-question-note" class="active-note-box" style="display: none;">
+        <i class="fas fa-sticky-note"></i>
+        <span id="note-text-content"></span>
+    </div>
+
+    <div class="question-container">
                         <button id="prevBtn" class="image-arrow left">&#9664;</button>
                         <div id="question-content" class="question-content">
                             </div>
                         <button id="nextBtn" class="image-arrow right">&#9654;</button>
                     </div>
 
-                    <div class="mark-btn-container"> 
-                        <button class="primary" id="markSchemeBtn">
-    <i class="fas fa-eye"></i> Show Mark Scheme
-</button>
-                        <button class="secondary-btn" id="saveQuestionBtn">
-                            <i class="far fa-bookmark"></i> Save Question
-                        </button>
-                    </div>
+<div class="mark-btn-container"> 
+    <button class="primary" id="markSchemeBtn">
+        <i class="fas fa-eye"></i> Show Mark Scheme
+    </button>
+       <button class="secondary-btn" id="openNoteModalBtn" style="border-color: var(--teal); color: var(--teal);">
+        <i class="fas fa-pencil-alt"></i> Save with Note
+    </button>
+    <button class="secondary-btn" id="saveQuestionBtn">
+        <i class="far fa-bookmark"></i> Save
+    </button>
+ 
+</div>
 
                     <div id="markSchemeViewer" class="markscheme-viewer"></div>
                 </section>
@@ -159,6 +168,24 @@
         <p>Sorry, the specific paper or variant you selected does not exist in our database yet.</p>
         <div class="modal-buttons">
             <button id="closeNotFound" class="btn-confirm">Got it</button>
+        </div>
+    </div>
+</div>
+<div id="noteModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close-modal" id="closeNoteModal">&times;</span>
+        <div class="gate-icon-circle" style="background: #f0fdfa; color: var(--teal);">
+            <i class="fas fa-sticky-note"></i>
+        </div>
+        <h2 class="gate-title" style="font-size: 1.5rem;">Add a Revision Note</h2>
+        <p class="gate-description">Write a reminder or a trick for this specific question.</p>
+        
+        <textarea id="noteTextArea" class="gate-input" 
+            placeholder="e.g., Remember to use integration by parts for the second step..." 
+            style="min-height: 120px; resize: vertical; margin-bottom: 1rem;"></textarea>
+
+        <div class="gate-actions">
+            <button id="saveWithNoteConfirmBtn" class="btn-gate">Save to Library</button>
         </div>
     </div>
 </div>

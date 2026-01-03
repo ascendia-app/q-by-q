@@ -5,7 +5,6 @@ const API_BASE_URL = "https://q-by-q.vercel.app/api";
 
 /**
  * Sanitizes token and verifies with backend.
- * Redirects to login if token is missing or invalid.
  */
 async function checkAuth() {
     let token = localStorage.getItem("token");
@@ -74,132 +73,14 @@ function updateSidebarAuthBtn(isLoggedIn, email = "") {
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
 
-    const savedGrid = document.getElementById('savedGrid');
-    const emptyState = document.getElementById('emptyState');
-    const previewModal = document.getElementById('previewModal');
-    const modalImages = document.getElementById('modalImages');
-    const modalMS = document.getElementById('modalMS');
-    const modalTitle = document.getElementById('modalTitle');
-    const toggleMSBtn = document.getElementById('toggleModalMS');
     const sidebar = document.getElementById("sidebar");
     const toggleSidebar = document.getElementById("toggleSidebar");
     const clearAllModal = document.getElementById('clearAllModal');
 
-    let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
-
     if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
 
-    function checkEmpty() {
-        if (savedQuestions.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            if (savedGrid) savedGrid.style.display = 'none';
-        } else {
-            if (emptyState) emptyState.style.display = 'none';
-            if (savedGrid) {
-                savedGrid.style.display = 'grid';
-                renderSavedQuestions();
-            }
-        }
-    }
-
-    function renderSavedQuestions() {
-        if (!savedGrid) return;
-        savedGrid.innerHTML = '';
-        const seasonMap = { 'febmar': 'Feb/March', 'mayjun': 'May/June', 'octnov': 'Oct/Nov' };
-        
-        savedQuestions.forEach((q, index) => {
-            const card = document.createElement('div');
-            card.className = 'saved-card';
-            const paperRef = `${seasonMap[q.season] || q.season} ${q.year} | V${q.variant}`;
-
-            card.innerHTML = `
-                <button class="btn-remove" onclick="removeSaved(${index})"><i class="fas fa-trash"></i></button>
-                <div class="card-badges">
-                    <span class="badge" style="color: #0ea5e9">Math 9709</span>
-                    <span class="badge">${(q.paper || "QP").toUpperCase()}</span>
-                </div>
-                <h3>Question ${q.questionNum}</h3>
-                <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.85rem;">${paperRef}</p>
-                <div class="card-actions">
-                    <button class="btn-view" onclick="openPreview(${index})"><i class="fas fa-eye"></i> Preview</button>
-                    <button class="btn-view secondary-bg" onclick="jumpToPractice(${index})"><i class="fas fa-external-link-alt"></i> Practice</button>
-                </div>`;
-            savedGrid.appendChild(card);
-        });
-    }
-
-    window.removeSaved = (index) => {
-        savedQuestions.splice(index, 1);
-        localStorage.setItem('savedQuestions', JSON.stringify(savedQuestions));
-        checkEmpty(); 
-    };
-
-    window.jumpToPractice = (index) => {
-        const q = savedQuestions[index];
-        localStorage.setItem('lastPaper', JSON.stringify({
-            subjectCode: q.subjectVal,
-            paper: q.paper,
-            year: q.year,
-            series: q.season,
-            variant: "v" + q.variant,
-            currentIndex: q.questionNum - 1
-        }));
-        window.location.href = `index.html?paper=${q.paper}&year=${q.year}&series=${q.season}&variant=v${q.variant}&q=${q.questionNum - 1}`;
-    };
-
-    window.openPreview = async (index) => {
-        const q = savedQuestions[index];
-        if (!q) return;
-
-        modalTitle.textContent = `Question ${q.questionNum}`;
-        modalImages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-        modalMS.innerHTML = '';
-        modalMS.style.display = 'none';
-        toggleMSBtn.textContent = "Show Mark Scheme";
-
-        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-        const vNum = q.variant.toString().replace('v', '');
-        const pCode = (paperMap[q.paper.toLowerCase()] || q.paper) + vNum;
-        const yCode = (q.season === "febmar" ? "m" : q.season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
-        
-        const qFileBase = `images/${q.subjectVal}_${yCode}_qp_${pCode}_q${q.questionNum}`;
-        const mFileBase = `images/${q.subjectVal}_${yCode}_ms_${pCode}_q${q.questionNum}`;
-
-        let foundAtLeastOne = false;
-        const partLetters = ["", "a", "b", "c", "d", "e", "f"];
-
-        for (const char of partLetters) {
-            const qPath = `${qFileBase}${char}.PNG`;
-            const mPath = `${mFileBase}${char}.PNG`;
-
-            try {
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        if (!foundAtLeastOne) { modalImages.innerHTML = ''; foundAtLeastOne = true; }
-                        const qImg = document.createElement('img');
-                        qImg.src = qPath; 
-                        qImg.className = "preview-img";
-                        modalImages.appendChild(qImg);
-
-                        const mImg = document.createElement('img');
-                        mImg.src = mPath;
-                        mImg.className = "preview-ms-img";
-                        mImg.onerror = () => mImg.style.display = 'none';
-                        modalMS.appendChild(mImg);
-                        resolve();
-                    };
-                    img.onerror = () => reject();
-                    img.src = qPath;
-                });
-            } catch(e) {}
-        }
-
-        if (!foundAtLeastOne) {
-            modalImages.innerHTML = `<div class="error-msg">No images found for Q${q.questionNum}</div>`;
-        }
-        previewModal.style.display = "block";
-    };
+    // Initial check and render
+    checkEmpty();
 
     if (toggleSidebar) {
         toggleSidebar.onclick = () => {
@@ -208,21 +89,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
     }
 
-    if (toggleMSBtn) {
-        toggleMSBtn.onclick = () => {
-            const isHidden = modalMS.style.display === 'none';
-            modalMS.style.display = isHidden ? 'block' : 'none';
-            toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+        clearAllBtn.onclick = () => { 
+            const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+            if(saved.length > 0) clearAllModal.style.display = 'flex'; 
         };
     }
 
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    if (clearAllBtn) {
-        clearAllBtn.onclick = () => { if(savedQuestions.length > 0) clearAllModal.style.display = 'flex'; };
-    }
-
     document.getElementById('confirmClearBtn').onclick = () => {
-        savedQuestions = [];
         localStorage.setItem('savedQuestions', "[]");
         clearAllModal.style.display = 'none';
         checkEmpty();
@@ -231,13 +106,205 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('cancelClearBtn').onclick = () => {
         clearAllModal.style.display = 'none';
     };
-
-    checkEmpty();
 });
 
+/**
+ * Toggles between the Grid and the Empty State UI
+ */
+function checkEmpty() {
+    const savedGrid = document.getElementById('savedGrid');
+    const emptyState = document.getElementById('emptyState');
+    const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+
+    if (saved.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        if (savedGrid) savedGrid.style.display = 'none';
+    } else {
+        if (emptyState) emptyState.style.display = 'none';
+        if (savedGrid) {
+            savedGrid.style.display = 'flex'; 
+            savedGrid.style.flexDirection = 'column';
+            renderSavedQuestions();
+        }
+    }
+}
+
+/**
+ * Renders Horizontal Cards
+ */
+function renderSavedQuestions() {
+    const savedGrid = document.getElementById("savedGrid");
+    const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+
+    savedGrid.innerHTML = "";
+
+    saved.forEach((q) => {
+        const card = document.createElement("div");
+        card.className = "saved-card-row"; 
+        
+        const noteText = q.note ? q.note.trim() : "";
+        const noteHtml = noteText 
+            ? `<div class="note-badge" title="${noteText.replace(/"/g, '&quot;')}">
+                <i class="fas fa-sticky-note"></i> <span>${noteText}</span>
+               </div>` 
+            : `<div style="flex: 1;"></div>`; 
+
+        const titleHtml = `
+            <span class="sub-text">Math ${q.subjectVal || '9709'}</span>
+            <span class="separator">|</span>
+            <span class="main-ref">${q.season.toUpperCase()} ${q.year}</span>
+            <span class="variant-tag">V${q.variant}</span>
+            <span class="separator">|</span>
+            <span class="question-text">Question ${q.questionNum}</span>
+        `;
+
+        card.innerHTML = `
+            <div class="card-main-content">
+                <h3 class="paper-title-aesthetic">${titleHtml}</h3>
+                ${noteHtml}
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action preview" onclick="previewQuestion('${q.id}')">
+                    <i class="fas fa-eye"></i> <span>Preview</span>
+                </button>
+                <button class="btn-action practice" onclick="practiceQuestion('${q.id}')">
+                    <i class="fas fa-play"></i> <span>Practice</span>
+                </button>
+                <button class="btn-action delete" onclick="removeQuestion('${q.id}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        `;
+        savedGrid.appendChild(card);
+    });
+}
+
 /* =========================================
-   3. GLOBAL MODAL HANDLER
+   3. GLOBAL ACTION HANDLERS
    ========================================= */
+
+window.removeQuestion = (id) => {
+    let saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+    saved = saved.filter(q => q.id !== id);
+    localStorage.setItem('savedQuestions', JSON.stringify(saved));
+    checkEmpty();
+};
+
+/**
+ * FIXED: Properly redirects to index.html with the correct question index
+ */
+window.practiceQuestion = (id) => {
+    const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+    const q = saved.find(item => item.id === id);
+    if (!q) return;
+
+    // Convert question number (1-based) to index (0-based)
+    const targetIndex = parseInt(q.questionNum) - 1;
+
+    // 1. Update lastPaper in localStorage for session recovery
+    localStorage.setItem('lastPaper', JSON.stringify({
+        subjectCode: q.subjectVal || "9709",
+        paper: q.paper,
+        year: q.year.toString(),
+        series: q.season,
+        variant: "v" + q.variant.toString().replace('v', ''),
+        currentIndex: targetIndex
+    }));
+
+    // 2. Redirect with URL parameters that app.js expects
+    const params = new URLSearchParams({
+        paper: q.paper,
+        year: q.year,
+        series: q.season,
+        variant: "v" + q.variant.toString().replace('v', ''),
+        q: targetIndex
+    });
+
+    window.location.href = `index.html?${params.toString()}`;
+};
+
+window.previewQuestion = async (id) => {
+    const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+    const q = saved.find(item => item.id === id);
+    if (!q) return;
+
+    const modal = document.getElementById('previewModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImages = document.getElementById('modalImages');
+    const modalMS = document.getElementById('modalMS');
+    const toggleMSBtn = document.getElementById('toggleModalMS');
+    const modalNote = document.getElementById('modalNote');
+    const modalNoteText = document.getElementById('modalNoteText');
+
+    if (q.note && q.note.trim() !== "") {
+        if (modalNote) modalNote.style.display = 'block';
+        if (modalNoteText) modalNoteText.textContent = q.note;
+    } else {
+        if (modalNote) modalNote.style.display = 'none';
+    }
+
+    modalTitle.textContent = `Question ${q.questionNum}`;
+    modalImages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading Images...</div>';
+    modalMS.innerHTML = '';
+    modalMS.style.display = 'none';
+    if(toggleMSBtn) toggleMSBtn.textContent = "Show Mark Scheme";
+
+    const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
+    const vNum = q.variant.toString().replace('v', '');
+    const pCode = (paperMap[q.paper.toLowerCase()] || q.paper) + vNum;
+    const yCode = (q.season === "febmar" ? "m" : q.season === "mayjun" ? "s" : "w") + q.year.toString().slice(-2);
+    
+    const qFileBase = `images/${q.subjectVal}_${yCode}_qp_${pCode}_q${q.questionNum}`;
+    const mFileBase = `images/${q.subjectVal}_${yCode}_ms_${pCode}_q${q.questionNum}`;
+
+    let foundAtLeastOne = false;
+    const partLetters = ["", "a", "b", "c", "d", "e", "f"];
+
+    for (const char of partLetters) {
+        const qPath = `${qFileBase}${char}.PNG`;
+        const mPath = `${mFileBase}${char}.PNG`;
+
+        try {
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (!foundAtLeastOne) { modalImages.innerHTML = ''; foundAtLeastOne = true; }
+                    
+                    const qImg = document.createElement('img');
+                    qImg.src = qPath; 
+                    qImg.className = "preview-img";
+                    qImg.style.width = "100%";
+                    qImg.style.marginBottom = "10px";
+                    qImg.style.borderRadius = "8px";
+                    modalImages.appendChild(qImg);
+
+                    const mImg = document.createElement('img');
+                    mImg.src = mPath;
+                    mImg.className = "preview-ms-img";
+                    mImg.style.width = "100%";
+                    mImg.style.borderRadius = "8px";
+                    mImg.onerror = () => mImg.remove();
+                    modalMS.appendChild(mImg);
+                    resolve();
+                };
+                img.onerror = () => reject();
+                img.src = qPath;
+            });
+        } catch(e) {}
+    }
+
+    if (!foundAtLeastOne) {
+        modalImages.innerHTML = `<div class="error-msg" style="text-align:center; padding:20px; color:#ef4444;">No images found for Q${q.questionNum}</div>`;
+    }
+
+    modal.style.display = "flex";
+};
+
+/* =========================================
+   4. MODAL & UI EVENT LISTENERS
+   ========================================= */
+
 window.addEventListener('click', (e) => {
     const logoutModal = document.getElementById('logoutModal');
     const previewModal = document.getElementById('previewModal');
@@ -252,18 +319,16 @@ window.addEventListener('click', (e) => {
         }
     }
 
-    if (e.target === logoutModal || e.target.id === 'cancelLogout') {
-        if (logoutModal) logoutModal.style.display = 'none';
-    }
-    if (e.target === previewModal || e.target.classList.contains('close-modal')) {
-        if (previewModal) previewModal.style.display = 'none';
-    }
-    if (e.target === clearAllModal) {
-        if (clearAllModal) clearAllModal.style.display = 'none';
+    if (e.target === logoutModal) logoutModal.style.display = 'none';
+    if (e.target === previewModal) previewModal.style.display = 'none';
+    if (e.target === clearAllModal) clearAllModal.style.display = 'none';
+    
+    if (e.target.classList.contains('close-modal')) {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     }
 
+    if (e.target.id === 'cancelLogout') logoutModal.style.display = 'none';
     if (e.target.id === 'confirmLogout') {
-        // CRITICAL FIX: Only remove session data, do NOT clear savedQuestions
         localStorage.removeItem("token");
         localStorage.removeItem("lastPaper"); 
         window.location.href = "pleaselogin.html";
@@ -272,8 +337,16 @@ window.addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.key === "Escape") {
-        if(document.getElementById('previewModal')) document.getElementById('previewModal').style.display = "none";
-        if(document.getElementById('logoutModal')) document.getElementById('logoutModal').style.display = "none";
-        if(document.getElementById('clearAllModal')) document.getElementById('clearAllModal').style.display = "none";
+        document.querySelectorAll('.modal').forEach(m => m.style.display = "none");
     }
 });
+
+const toggleMSBtnModal = document.getElementById('toggleModalMS');
+if (toggleMSBtnModal) {
+    toggleMSBtnModal.onclick = () => {
+        const modalMS = document.getElementById('modalMS');
+        const isHidden = modalMS.style.display === 'none';
+        modalMS.style.display = isHidden ? 'block' : 'none';
+        toggleMSBtnModal.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
+    };
+}

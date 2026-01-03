@@ -37,7 +37,6 @@ async function checkAuth() {
             updateSidebarAuthBtn(true);
             return true;
         } else {
-            // Server error but token looks valid; allow UI to show logout
             updateSidebarAuthBtn(true); 
             return true;
         }
@@ -47,10 +46,6 @@ async function checkAuth() {
     }
 }
 
-/**
- * Updates Sidebar Button visuals. 
- * Logic (Logout vs Login) is handled by the Global Click Listener.
- */
 function updateSidebarAuthBtn(isLoggedIn) {
     const authBtn = document.getElementById("authTopBtn");
     if (!authBtn) return;
@@ -76,10 +71,10 @@ function updateSidebarAuthBtn(isLoggedIn) {
    2. MAIN APPLICATION LOGIC
    ========================================= */
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Run Auth
+    // 1. Initial Setup
     await checkAuth();
 
-    // 2. UI Elements
+    // UI Elements
     const questionNumberEl = document.getElementById("question-number");
     const questionContentEl = document.getElementById("question-content");
     const prevBtn = document.getElementById("prevBtn");
@@ -90,6 +85,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const saveBtn = document.getElementById('saveQuestionBtn');
     const loadPaperBtn = document.getElementById("loadPaperBtn");
     const notFoundModal = document.getElementById('notFoundModal');
+
+    // Note Modal Elements
+    const noteModal = document.getElementById('noteModal');
+    const openNoteBtn = document.getElementById('openNoteModalBtn');
+    const closeNoteBtn = document.getElementById('closeNoteModal');
+    const saveWithNoteConfirmBtn = document.getElementById('saveWithNoteConfirmBtn');
+    const noteTextArea = document.getElementById('noteTextArea');
     
     // Filter Selectors
     const subjectSelect = document.getElementById("subjectSelect");
@@ -98,19 +100,84 @@ document.addEventListener("DOMContentLoaded", async () => {
     const seasonSelect = document.getElementById("seasonSelect");
     const variantSelect = document.getElementById("variantSelect");
 
-    /* --- CORE FUNCTIONS --- */
+    /* --- CORE LOGIC FUNCTIONS --- */
+
+    /**
+     * Checks if a note exists for the current question in localStorage
+     * and displays it in the revision note box.
+     */
+    function updateQuestionNote() {
+        const noteBox = document.getElementById('active-question-note');
+        const noteText = document.getElementById('note-text-content');
+        if (!noteBox || !noteText || questions.length === 0) {
+            if (noteBox) noteBox.style.display = 'none';
+            return;
+        }
+
+        const q = questions[currentIndex];
+        const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
+        
+        const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+        const matched = saved.find(sq => sq.id === currentId);
+
+        if (matched && matched.note && matched.note.trim() !== "") {
+            noteText.textContent = matched.note;
+            noteBox.style.display = 'flex';
+        } else {
+            noteBox.style.display = 'none';
+        }
+    }
+
+    function handleSaveAction(note = null) {
+        let token = localStorage.getItem("token");
+        if (!token || token.length < 20) {
+            window.location.href = "login.html";
+            return;
+        }
+        if (questions.length === 0) return;
+
+        const q = questions[currentIndex];
+        const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
+        let currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+        const existingIndex = currentSaved.findIndex(sq => sq.id === currentId);
+        
+        if (existingIndex === -1 || note !== null) {
+            const saveObj = { 
+                id: currentId, 
+                subjectVal: subjectSelect.value, 
+                paper: paperSelect.value, 
+                year: yearSelect.value, 
+                season: seasonSelect.value, 
+                variant: variantSelect.value, 
+                questionNum: q.number,
+                note: note !== null ? note : (currentSaved[existingIndex]?.note || ""),
+                dateSaved: new Date().toISOString()
+            };
+
+            if (existingIndex > -1) {
+                currentSaved[existingIndex] = saveObj;
+            } else {
+                currentSaved.push(saveObj);
+            }
+        } else {
+            currentSaved.splice(existingIndex, 1);
+        }
+        
+        localStorage.setItem('savedQuestions', JSON.stringify(currentSaved));
+        updateSaveButtonState();
+        updateQuestionNote(); // Update the note display immediately after saving
+    }
 
     function saveState() {
         if (!subjectSelect.value || questions.length === 0) return;
-        
         const paperDisplayName = paperSelect.options[paperSelect.selectedIndex]?.text || "Paper";
         const subjectDisplayName = subjectSelect.options[subjectSelect.selectedIndex]?.text || "9709 Maths";
 
         localStorage.setItem("lastPaper", JSON.stringify({
-            subject: subjectDisplayName,     
+            subject: subjectDisplayName, 
             subjectCode: subjectSelect.value, 
-            paper: paperSelect.value,        
-            paperName: paperDisplayName,     
+            paper: paperSelect.value, 
+            paperName: paperDisplayName, 
             year: yearSelect.value,
             series: seasonSelect.value,
             variant: "v" + variantSelect.value,
@@ -124,14 +191,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (questionNumberEl) questionNumberEl.textContent = `Question ${q.number}`;
 
-        // Reset Markscheme view on question change
         if (markSchemeViewer && markSchemeBtn) {
             markSchemeViewer.style.display = "none";
             markSchemeViewer.classList.remove("open");
             markSchemeBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
         }
 
-        // Render Question Images
         questionContentEl.innerHTML = "";
         q.images.forEach(src => {
             const img = document.createElement("img");
@@ -142,7 +207,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             questionContentEl.appendChild(img);
         });
 
-        // Load Markscheme Images (Hidden)
         markSchemeViewer.innerHTML = "";
         q.markImages.forEach(src => {
             const img = document.createElement("img");
@@ -152,12 +216,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         updateSaveButtonState();
+        updateQuestionNote(); // Show the note if it exists for this specific question
     }
 
     function renderUI() {
         renderQuestion();
-        
-        // Update Sidebar Numbers
         if (questionList) {
             questionList.innerHTML = "";
             questions.forEach((q, index) => {
@@ -168,17 +231,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 questionList.appendChild(btn);
             });
         }
-
-        // Navigation Arrows
         if (prevBtn) prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
         if (nextBtn) nextBtn.style.visibility = (currentIndex === questions.length - 1 || questions.length === 0) ? "hidden" : "visible";
-
         saveState(); 
     }
 
     function updateSaveButtonState() {
         if (!questions[currentIndex] || !saveBtn) return;
-        
         const q = questions[currentIndex];
         const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
         const currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
@@ -188,64 +247,61 @@ document.addEventListener("DOMContentLoaded", async () => {
             saveBtn.innerHTML = `<i class="fas fa-bookmark"></i> Saved`;
             saveBtn.style.color = "#eab308";
         } else {
-            saveBtn.innerHTML = `<i class="far fa-bookmark"></i> Save Question`;
+            saveBtn.innerHTML = `<i class="far fa-bookmark"></i> Save`;
             saveBtn.style.color = "";
         }
     }
 
-    /* --- EVENT HANDLERS --- */
+    /* --- UI EVENT HANDLERS --- */
 
     if (saveBtn) {
-        saveBtn.onclick = () => {
-            let token = localStorage.getItem("token");
-            if (!token || token.length < 20) {
-                window.location.href = "login.html";
-                return;
-            }
-            if (questions.length === 0) return;
+        saveBtn.onclick = () => handleSaveAction();
+    }
 
+    if (openNoteBtn) {
+        openNoteBtn.onclick = (e) => {
+            e.preventDefault();
+            if (questions.length === 0) return;
             const q = questions[currentIndex];
             const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
-            let currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
-            const existingIndex = currentSaved.findIndex(sq => sq.id === currentId);
+            const currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+            const existing = currentSaved.find(sq => sq.id === currentId);
             
-            if (existingIndex === -1) {
-                currentSaved.push({ 
-                    id: currentId, 
-                    subjectVal: subjectSelect.value, 
-                    paper: paperSelect.value, 
-                    year: yearSelect.value, 
-                    season: seasonSelect.value, 
-                    variant: variantSelect.value, 
-                    questionNum: q.number 
-                });
-            } else {
-                currentSaved.splice(existingIndex, 1);
-            }
-            
-            localStorage.setItem('savedQuestions', JSON.stringify(currentSaved));
-            updateSaveButtonState();
+            noteTextArea.value = existing?.note || "";
+            noteModal.style.display = 'flex';
         };
     }
-/* --- Inside loadPaperBtn.onclick --- */
+
+    if (closeNoteBtn) {
+        closeNoteBtn.onclick = () => noteModal.style.display = 'none';
+    }
+
+    if (saveWithNoteConfirmBtn) {
+        saveWithNoteConfirmBtn.onclick = () => {
+            handleSaveAction(noteTextArea.value.trim());
+            noteModal.style.display = 'none';
+        };
+    }
+
 if (loadPaperBtn) {
-    loadPaperBtn.onclick = () => {
-        // ADD THIS LINE HERE:
-        currentIndex = 0; 
-
-        const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
-        loadPaperBtn.disabled = true;
-        loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
-
-        // ... rest of your code (paperMap, pCode, yCode) ...
+    loadPaperBtn.onclick = (e) => {
+        // Only reset to 0 if the click was a real manual user click
+        // If it's a "simulated" click from the auto-resume logic, keep the currentIndex
+        if (e && e.isTrusted) {
+            currentIndex = 0;
+        }
         
-        questions = [];
-        let qNum = 1;
+        const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
+        // ... rest of your code ...
+            loadPaperBtn.disabled = true;
+            loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
 
             const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
             const pCode = (paperMap[paperSelect.value.toLowerCase()] || paperSelect.value) + variantSelect.value;
             const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
             
+            questions = [];
+            let qNum = 1;
 
             const loadNextQuestion = () => {
                 let parts = []; let markParts = []; let partIndex = 0;
@@ -267,35 +323,37 @@ if (loadPaperBtn) {
                     img.src = qPath;
                 };
 
-        const tryNoPart = () => {
-    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
-    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
-    const img = new Image();
-    img.onload = () => {
-        // FIX: Ensure the image actually has content/size
-        if (img.complete && img.naturalWidth > 0) {
-            questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
-            qNum++; 
-            loadNextQuestion();
-        } else {
-            finalizeLoading();
-        }
-    };
-    img.onerror = () => finalizeLoading();
-    img.src = qPath;
-};
+                const tryNoPart = () => {
+                    const qPath = `images/${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
+                    const mPath = `images/${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
+                    const img = new Image();
+                    img.onload = () => {
+                        if (img.complete && img.naturalWidth > 0) {
+                            questions.push({ number: qNum, images: [qPath], markImages: [mPath] });
+                            qNum++; loadNextQuestion();
+                        } else { finalizeLoading(); }
+                    };
+                    img.onerror = () => finalizeLoading();
+                    img.src = qPath;
+                };
+
                 const finishQuestion = () => {
                     questions.push({ number: qNum, images: parts, markImages: markParts });
                     qNum++; loadNextQuestion();
                 };
 
-        const finalizeLoading = () => {
+      // Inside finalizeLoading in app.js
+const finalizeLoading = () => {
     loadPaperBtn.disabled = false;
     loadPaperBtn.innerHTML = originalBtnHTML;
     if (questions.length === 0) {
-        if (notFoundModal) notFoundModal.style.display = 'flex'; // Triggers if images aren't found
+        if (notFoundModal) notFoundModal.style.display = 'flex';
         return; 
     }
+    
+    // Ensure the index doesn't exceed the number of questions found
+    if (currentIndex >= questions.length) currentIndex = 0;
+    
     renderUI();
 };
                 tryPart();
@@ -304,14 +362,7 @@ if (loadPaperBtn) {
         };
     }
 
-    /* --- SESSION RECOVERY LOGIC --- */
-    const resumePaper = urlParams.get('paper');
-    const resumeYear = urlParams.get('year');
-    const resumeSeries = urlParams.get('series');
-    const resumeVariant = urlParams.get('variant');
-    const resumeQ = urlParams.get('q');
-    const lastSession = JSON.parse(localStorage.getItem("lastPaper"));
-
+    /* --- SESSION RECOVERY & INITIALIZATION --- */
     function applyVariantRule() {
         const selectedSeason = seasonSelect.value;
         const savedVal = variantSelect.value;
@@ -331,14 +382,18 @@ if (loadPaperBtn) {
 
     if (seasonSelect) seasonSelect.addEventListener('change', applyVariantRule);
 
+    const resumePaper = urlParams.get('paper');
+    const resumeYear = urlParams.get('year');
+    const lastSession = JSON.parse(localStorage.getItem("lastPaper"));
+
     if (resumePaper && resumeYear) {
         subjectSelect.value = "9709";
         paperSelect.value = resumePaper;
         yearSelect.value = resumeYear;
-        seasonSelect.value = resumeSeries || "mayjun";
+        seasonSelect.value = urlParams.get('series') || "mayjun";
         applyVariantRule();
-        variantSelect.value = resumeVariant ? resumeVariant.replace('v', '') : "1";
-        currentIndex = parseInt(resumeQ || 0);
+        variantSelect.value = (urlParams.get('variant') || "v1").replace('v', '');
+        currentIndex = parseInt(urlParams.get('q') || 0);
         loadPaperBtn.click();
     } else if (lastSession) {
         subjectSelect.value = lastSession.subjectCode || "9709";
@@ -363,25 +418,26 @@ if (loadPaperBtn) {
             markSchemeBtn.innerHTML = isOpen ? `<i class="fas fa-eye-slash"></i> Hide Markscheme` : `<i class="fas fa-eye"></i> Show Markscheme`;
         };
     }
+
+    // Sidebar Toggle
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
+    if (toggleSidebar) {
+        toggleSidebar.onclick = () => {
+            sidebar.classList.toggle("collapsed");
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        };
+    }
 });
 
 /* =========================================
-   3. SIDEBAR & GLOBAL CLICK HANDLER
+   3. GLOBAL CLICK LISTENER (Modals & Auth)
    ========================================= */
-const sidebar = document.getElementById("sidebar");
-const toggleSidebar = document.getElementById("toggleSidebar");
-if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
-
-if (toggleSidebar) {
-    toggleSidebar.onclick = () => {
-        sidebar.classList.toggle("collapsed");
-        localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-    };
-}
-
-// Global Click listener for Modals and Auth
 window.addEventListener('click', (e) => {
     const logoutModal = document.getElementById('logoutModal');
+    const noteModal = document.getElementById('noteModal');
+    const notFoundModal = document.getElementById('notFoundModal');
     const authBtn = e.target.closest('#authTopBtn');
 
     if (authBtn) {
@@ -403,15 +459,17 @@ window.addEventListener('click', (e) => {
         window.location.href = "login.html";
     }
 
-    // Close Not Found Modal
-    const notFoundModal = document.getElementById('notFoundModal');
+    if (e.target === noteModal) {
+        noteModal.style.display = 'none';
+    }
+
     if (e.target === notFoundModal || e.target.id === 'closeNotFound') {
         if (notFoundModal) notFoundModal.style.display = 'none';
     }
 });
 
 /* =========================================
-   4. TIMER LOGIC (WITH GLOBAL SYNC)
+   4. TIMER LOGIC
    ========================================= */
 const hoursEl = document.getElementById("hours"), 
       minutesEl = document.getElementById("minutes"), 
@@ -432,7 +490,6 @@ function updateTimerUI() {
     if (data.running && data.startTime) {
         totalS += Math.floor((Date.now() - data.startTime) / 1000);
     }
-    
     if(hoursEl) hoursEl.textContent = String(Math.floor(totalS / 3600)).padStart(2, "0");
     if(minutesEl) minutesEl.textContent = String(Math.floor((totalS % 3600) / 60)).padStart(2, "0");
     if(secondsEl) secondsEl.textContent = String(totalS % 60).padStart(2, "0");
@@ -453,18 +510,12 @@ if (pauseBtn) {
     pauseBtn.onclick = () => {
         let data = getTimerData(); 
         if (!data.running) return;
-        
         const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
         let totalS = (data.h * 3600) + (data.m * 60) + data.s + elapsed;
-        
         localStorage.setItem("timerTime", JSON.stringify({ 
-            h: Math.floor(totalS / 3600), 
-            m: Math.floor((totalS % 3600) / 60), 
-            s: totalS % 60, 
-            running: false, 
-            startTime: null 
+            h: Math.floor(totalS / 3600), m: Math.floor((totalS % 3600) / 60), s: totalS % 60, 
+            running: false, startTime: null 
         }));
-        
         clearInterval(tInt); 
         updateTimerUI();
     };
@@ -472,26 +523,16 @@ if (pauseBtn) {
 
 if (resetBtn) {
     resetBtn.onclick = () => { 
-        // 1. BANK THE TIME: Before deleting session time, move it to Global Lifetime
         const data = getTimerData();
-        let currentSessionSeconds = (data.h * 3600) + (data.m * 60) + data.s;
-        
-        // Add the live progress if it was running
-        if (data.running && data.startTime) {
-            currentSessionSeconds += Math.floor((Date.now() - data.startTime) / 1000);
-        }
-
-        // Add to existing lifetime bucket
+        let currentS = (data.h * 3600) + (data.m * 60) + data.s;
+        if (data.running && data.startTime) currentS += Math.floor((Date.now() - data.startTime) / 1000);
         const existingLifetime = parseInt(localStorage.getItem("lifetimeStudySeconds") || 0);
-        localStorage.setItem("lifetimeStudySeconds", existingLifetime + currentSessionSeconds);
-
-        // 2. CLEAR THE SESSION: Now it's safe to remove the practice timer
+        localStorage.setItem("lifetimeStudySeconds", existingLifetime + currentS);
         clearInterval(tInt); 
         localStorage.removeItem("timerTime"); 
         updateTimerUI(); 
     };
 }
 
-// Auto-resume on load
 if (getTimerData().running) tInt = setInterval(updateTimerUI, 1000);
 updateTimerUI();

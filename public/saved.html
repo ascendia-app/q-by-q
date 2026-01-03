@@ -74,11 +74,23 @@
     <div class="modal-content" style="max-width: 800px; width: 90%;">
         <div class="modal-header">
             <h2 id="modalTitle">Question Preview</h2>
-            <span class="close-modal">&times;</span>
+            <span class="close-modal" id="closePreviewBtn">&times;</span>
         </div>
+
+        <div id="modalNote" class="preview-note-container" style="display:none;">
+            <div class="note-label"><i class="fas fa-sticky-note"></i> Your Revision Note</div>
+            <p id="modalNoteText"></p>
+        </div>
+
         <div id="modalImages"></div>
-        <button id="toggleModalMS" class="primary">Show Mark Scheme</button>
-        <div id="modalMS" style="display:none; margin-top:20px; border-top:2px dashed #ccc; padding-top:20px;"></div>
+        
+        <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="toggleModalMS" class="btn-gate secondary-bg" style="flex: 1;">
+                <i class="fas fa-eye"></i> Show Mark Scheme
+            </button>
+        </div>
+        
+        <div id="modalMS" style="display:none; margin-top:20px; border-top:2px dashed #e2e8f0; padding-top:20px;"></div>
     </div>
 </div>
 
