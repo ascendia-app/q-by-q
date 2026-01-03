@@ -258,20 +258,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         saveBtn.onclick = () => handleSaveAction();
     }
 
-    if (openNoteBtn) {
-        openNoteBtn.onclick = (e) => {
-            e.preventDefault();
-            if (questions.length === 0) return;
-            const q = questions[currentIndex];
-            const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
-            const currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
-            const existing = currentSaved.find(sq => sq.id === currentId);
-            
-            noteTextArea.value = existing?.note || "";
-            noteModal.style.display = 'flex';
-        };
-    }
+ if (openNoteBtn) {
+    openNoteBtn.onclick = (e) => {
+        e.preventDefault();
 
+        // --- AUTH CHECK ADDED HERE ---
+        let token = localStorage.getItem("token");
+        if (!token || token.length < 20) {
+            window.location.href = "pleaselogin.html";
+            return;
+        }
+        // -----------------------------
+
+        if (questions.length === 0) return;
+        
+        const q = questions[currentIndex];
+        const currentId = `${subjectSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}_q${q.number}`;
+        const currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+        const existing = currentSaved.find(sq => sq.id === currentId);
+        
+        noteTextArea.value = existing?.note || "";
+        noteModal.style.display = 'flex';
+    };
+}
     if (closeNoteBtn) {
         closeNoteBtn.onclick = () => noteModal.style.display = 'none';
     }
