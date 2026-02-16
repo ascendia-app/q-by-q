@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Answer Key Manager | QbyQ</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-main);
+            line-height: 1.5;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--primary); }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-add:hover { background: var(--primary-dark); }
+
+        .key-list {
+            margin-top: 30px;
+            border-top: 2px solid #f1f5f9;
+            padding-top: 20px;
+        }
+
+        .key-item {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s;
+        }
+
+        .key-item:hover { transform: translateX(5px); border-color: #e2e8f0; }
+
+        .paper-tag {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .answer-string {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .btn-delete {
+            color: #ef4444;
+            background: #fef2f2;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover { background: #fee2e2; color: #dc2626; }
+
+        .stats-badge {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div>
+                <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Practice</a>
+                <h1 style="margin: 10px 0 0 0; font-size: 1.8rem;">Master Key Database</h1>
+            </div>
+            <div id="totalCount" style="background: white; padding: 10px 20px; border-radius: 30px; border: 1px solid #e2e8f0; font-weight: 600; color: var(--primary);">
+                0 Keys Stored
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--text-muted);">Add New Paper Key</h3>
+            
+            <div class="input-group">
+                <input type="text" id="paperId" placeholder="ID (9708_pure3_mayjun_2025_1)">
+                <input type="text" id="answers" placeholder="Answers (e.g. ABCDBA...)">
+            </div>
+            
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">
+                <i class="fas fa-info-circle"></i> ID Format: <b>Subject_Paper_Season_Year_Variant</b> (Match your dropdown values exactly).
+            </p>
+
+            <button onclick="saveNewKey()" class="btn-add">
+                <i class="fas fa-plus"></i> Add to Database
+            </button>
+
+            <div class="key-list" id="keysContainer">
+                </div>
+        </div>
+    </div>
+
+<script>
+    // ---------------------------------------------------------
+    // WRITE YOUR KEYS HERE (Hardcoded)
+    // Format: "Subject_Paper_Season_Year_Variant": "ANSWERS"
+    // ---------------------------------------------------------
+const HARDCODED_DATABASE = {
+    // Matches 9708_m25_qp_32_q1a.PNG
+    "9708_m25_qp_32": "ABCDBCADADBCDAADBCBA", 
+    "9708_s24_qp_11": "BCADADBCBAABCDBCADAD",
+    // Add more here...
+};
+
+    function syncHardcodedToStorage() {
+        const keys = {};
+        
+        // Convert the simple strings above into the Array format the app expects
+        for (const id in HARDCODED_DATABASE) {
+            keys[id] = HARDCODED_DATABASE[id].split('');
+        }
+
+        // Save to LocalStorage so index.html can see them
+        localStorage.setItem('mcqDatabase', JSON.stringify(keys));
+        renderKeys();
+    }
+
+    function renderKeys() {
+        const keys = JSON.parse(localStorage.getItem('mcqDatabase')) || {};
+        const container = document.getElementById('keysContainer');
+        const countBadge = document.getElementById('totalCount');
+        
+        const keyArray = Object.keys(keys);
+        countBadge.innerText = `${keyArray.length} Keys Hardcoded`;
+        
+        container.innerHTML = '';
+        
+        keyArray.sort().forEach(id => {
+            const ans = keys[id];
+            container.innerHTML += `
+                <div class="key-item">
+                    <div>
+                        <span class="paper-tag">${id.split('_')[0]}</span>
+                        <span style="font-weight: 600; margin-left: 10px;">${id.replace(id.split('_')[0] + '_', '')}</span>
+                        <div class="answer-string">${ans.join(' ')}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Run the sync automatically when you open the page
+    document.addEventListener('DOMContentLoaded', syncHardcodedToStorage);
+</script>
+</body>
+</html>

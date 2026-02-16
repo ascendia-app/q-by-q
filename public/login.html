@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Q by Q</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="favicon.PNG">
+</head>
+<body class="auth-page">
+
+<div class="gate-wrapper">
+    <div class="gate-card">
+        <div class="gate-icon-circle">
+            <i class="fas fa-lock"></i>
+        </div>
+        
+        <h2 class="gate-title">Welcome Back</h2>
+        <p class="gate-description">Sign in to sync your study time and saved questions.</p>
+        
+        <div id="errorMessage" class="auth-error" style="display: none;"></div>
+
+        <form id="loginForm" class="gate-form">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="gate-input" placeholder="name@example.com" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="gate-input" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn-gate">Login</button>
+        </form>
+
+        <div class="gate-footer">
+            Don't have an account? <a href="signup.html">Sign Up</a>
+        </div>
+
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Practice
+        </a>
+    </div>
+</div>
+
+<script src="js/login.js"></script>
+</body>
+</html>

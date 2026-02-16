@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Topical Practice | Q by Q</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="favicon.PNG">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        (function() {
+            if (localStorage.getItem("sidebarCollapsed") === "true") {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
+    </script>
+    <style>
+        .modal-active { display: flex !important; opacity: 1 !important; }
+        .modal-active .modal-card { transform: translateY(0) !important; opacity: 1 !important; }
+        .paper-selection select { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; font-family: inherit; color: #1e293b; font-weight: 500; outline: none; margin-right: 5px;}
+        .primary:hover { opacity: 0.9; }
+        #mf19Handle { cursor: move; user-select: none; }
+    </style>
+</head>
+<body style="background-color: #f8fafc;">
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Q<span>by</span>Q</div>
+                <button id="toggleSidebar" class="toggle-btn"><i class="fas fa-bars"></i></button>
+            </div>
+            
+            <nav class="nav-links compact-nav">
+                <a href="dashboard.html" class="nav-item"><div class="icon-box"><i class="fas fa-home"></i></div><span class="nav-text">Dashboard</span></a>
+                <a href="index.html" class="nav-item"><div class="icon-box"><i class="fas fa-book"></i></div><span class="nav-text">Yearly</span></a>
+                <a href="topical.html" class="nav-item active"><div class="icon-box"><i class="fas fa-layer-group"></i></div><span class="nav-text">Topical</span></a>
+                <a href="syllabus.html" class="nav-item"><div class="icon-box"><i class="fas fa-list-check"></i></div><span class="nav-text">Syllabus</span></a>
+                <a href="grades.html" class="nav-item"><div class="icon-box"><i class="fas fa-graduation-cap"></i></div><span class="nav-text">Grades</span></a>
+                <a href="saved.html" class="nav-item"><div class="icon-box"><i class="fas fa-bookmark"></i></div><span class="nav-text">Saved</span></a>
+            </nav>
+            
+            <div class="sidebar-questions">
+                <p class="nav-text" style="padding: 0 1.5rem; font-size: 0.8rem; color: #64748b; margin-top: 1rem;">QUESTIONS</p>
+                <div class="question-list" id="questionList"></div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button id="authTopBtn" class="auth-btn logout-state" title="Logout">
+                    <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <div class="header-title"><h2 style="margin:0; font-size: 1.2rem;">Topical Mastery Zone</h2></div>
+                <div class="header-timer">
+                    <div id="timer">
+                        <div class="time-box" id="hours">00</div><span class="colon">:</span>
+                        <div class="time-box" id="minutes">00</div><span class="colon">:</span>
+                        <div class="time-box" id="seconds">00</div>
+                    </div>
+                    <div class="timer-controls">
+                        <button id="startTimer">Start</button>
+                        <button id="pauseTimer">Pause</button>
+                        <button id="resetTimer">Reset</button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="paper-selection">
+                <select id="subjectSelect"><option value="9709">Mathematics 9709</option></select>
+                <select id="paperSelect" onchange="updateTopicList()">
+                    <option value="pure3">Pure Mathematics 3</option>
+                    <option value="stats1">Probability & Statistics 1</option>
+                </select>
+                <select id="topicSelect"><option value="">Select Topic</option></select>
+                <button id="loadTopicalBtn" class="primary"><i class="fas fa-filter"></i> Generate Session</button>
+                <button id="toggleMF19Btn" class="secondary-btn" style="border-color: var(--teal); color: var(--teal); margin-left: 10px;">
+                    <i class="fas fa-file-pdf"></i> Show MF19
+                </button>
+            </section>
+
+            <div class="dashboard-content">
+                <div id="active-question-note" style="display: none; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 15px; border-radius: 8px; align-items: center; gap: 12px;">
+                    <i class="fas fa-sticky-note" style="color: #f59e0b;"></i>
+                    <span id="note-text-content" style="color: #92400e; font-weight: 500;"></span>
+                </div>
+
+                <div class="practice-workspace">
+                    <section class="question-display" id="mainQuestionArea">
+                        <div class="question-header" style="margin-bottom: 15px;">
+                            <h2 id="question-number" style="margin:0;">Select a Topic</h2>
+                        </div>
+
+                        <div class="question-container" style="position: relative;"> 
+                            <div id="headerMarkEntry" style="display: none; position: absolute; top: -30px; right: 20px; z-index: 10; background: #f8fafc; padding: 6px 12px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; flex-direction: column; align-items: center; min-width: 75px;">
+                                <span style="font-weight: 700; font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">MARKS</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="tel" id="currentQScore" oninput="updateMark(currentIndex, 'got', this)" style="width: 28px; border: none; background: transparent; text-align: right; font-weight: 800;">
+                                    <span style="margin: 0 4px;">/</span>
+                                    <input type="tel" id="currentQTotal" oninput="updateMark(currentIndex, 'max', this)" style="width: 28px; border: none; background: transparent; font-weight: 800;">
+                                </div>
+                            </div>
+                            <button id="prevBtn" class="image-arrow left">&#9664;</button>
+                            <div id="question-content" class="question-content" style="padding-top: 55px;"></div>
+                            <button id="nextBtn" class="image-arrow right">&#9654;</button>
+                        </div>
+
+                        <div class="mark-btn-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;"> 
+                            <button class="primary" id="markSchemeBtn"><i class="fas fa-eye"></i> Show Mark Scheme</button>
+                            <button class="secondary-btn" id="openNoteModalBtn" style="border-color: var(--teal); color: var(--teal);"><i class="fas fa-pencil-alt"></i> Save with Note</button>
+                            <button class="secondary-btn" id="saveQuestionBtn"><i class="far fa-bookmark"></i> Save</button>
+                            <button class="secondary-btn" onclick="finalizeFullPaperMarking()" style="background: #1e293b; color: white; border: none; margin-left: auto;"><i class="fas fa-check-double"></i> Finish & Save</button>
+                        </div>
+                        <div id="markSchemeViewer" class="markscheme-viewer" style="display:none; margin-top: 20px;"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="noteModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; opacity: 0; transition: all 0.3s ease;">
+        <div class="modal-card" style="background: white; width: 90%; max-width: 420px; padding: 35px; border-radius: 28px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); transform: translateY(20px); transition: all 0.3s ease;">
+            <div style="width: 72px; height: 72px; background: #f0fdfa; color: #0d9488; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 1.8rem;">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <h2 style="margin: 0; color: #1e293b; font-size: 1.6rem; font-weight: 800;">Revision Note</h2>
+            <p style="color: #64748b; margin: 10px 0 20px 0; line-height: 1.5;">Add a reminder or a trick for this specific question.</p>
+            
+            <textarea id="noteTextArea" style="width: 100%; min-height: 120px; padding: 15px; border-radius: 16px; border: 1px solid #e2e8f0; background: #f8fafc; font-family: inherit; font-size: 0.95rem; color: #1e293b; resize: vertical; margin-bottom: 25px; outline: none;" placeholder="e.g., Remember to use integration by parts..."></textarea>
+
+            <div style="display: flex; gap: 12px;">
+                <button id="closeNoteModal" style="flex: 1; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 700; cursor: pointer;">Cancel</button>
+                <button id="saveWithNoteConfirmBtn" style="flex: 1; padding: 14px; border-radius: 14px; border: none; background: #0d9488; color: white; font-weight: 700; cursor: pointer;">Save Question</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="finishModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; opacity: 0; transition: all 0.3s ease;">
+        <div class="modal-card" style="background: white; width: 90%; max-width: 420px; padding: 35px; border-radius: 28px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); transform: translateY(20px); transition: all 0.3s ease;">
+            <div style="width: 72px; height: 72px; background: #f0fdfa; color: #0d9488; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 1.8rem;">
+                <i class="fas fa-flag-checkered"></i>
+            </div>
+            <h2 style="margin: 0; color: #1e293b; font-size: 1.6rem; font-weight: 800;">Finish Paper?</h2>
+            <p style="color: #64748b; margin: 10px 0 25px 0; line-height: 1.5;">You've attempted <b><span id="modalAttemptCount">0</span></b> questions. Here is your current standing:</p>
+            
+            <div style="background: #f8fafc; border-radius: 20px; padding: 20px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Current Score</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #1e293b; margin: 5px 0;">
+                    <span id="modalScoreGot">0</span><span style="color: #cbd5e1; font-weight: 400;">/</span><span id="modalScoreMax">0</span>
+                </div>
+                <div id="modalPercent" style="display: inline-block; padding: 4px 12px; background: #0d9488; color: white; border-radius: 20px; font-weight: 700; font-size: 0.9rem;">0%</div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button onclick="closeFinishModal()" style="flex: 1; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 700; cursor: pointer;">Keep Working</button>
+                <button id="finalConfirmBtn" style="flex: 1; padding: 14px; border-radius: 14px; border: none; background: #1e293b; color: white; font-weight: 700; cursor: pointer;">Save & Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <aside id="mf19SplitWindow" style="display: none; position: fixed; top: 20px; left: 20px; width: 45%; height: 85vh; background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.3); z-index: 9999;">
+        <div id="mf19Handle" style="padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; cursor: move;">
+            <span style="font-weight: 600; color: #1e293b; pointer-events: none;">
+                <i class="fas fa-grip-vertical" style="margin-right: 8px; color: #94a3b8;"></i>
+                MF19 Formula Sheet
+            </span>
+            <button id="closeMF19Split" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <iframe id="mf19Iframe" src="pdfs/MF19.pdf" style="width: 100%; height: 100%; border: none;"></iframe>
+        <div id="mf19Resizer" style="width: 20px; height: 20px; position: absolute; right: 0; bottom: 0; cursor: nwse-resize; z-index: 10001; background: linear-gradient(135deg, transparent 50%, #02796b 50%); border-bottom-right-radius: 12px;"></div>
+    </aside>
+
+<script>
+const syllabusData = {
+    pure3: [
+        { val: "31", label: "3.1 Algebra" }, { val: "32", label: "3.2 Logarithmic" }, { val: "33", label: "3.3 Trig" },
+        { val: "34", label: "3.4 Diff" }, { val: "35", label: "3.5 Int" }, { val: "36", label: "3.6 Numerical" },
+        { val: "37", label: "3.7 Vectors" }, { val: "38", label: "3.8 Diff Eq" }, { val: "39", label: "3.9 Complex" }
+    ],
+    stats1: [
+        { val: "51", label: "5.1 Data" }, { val: "52", label: "5.2 P&C" }, { val: "53", label: "5.3 Prob" },
+        { val: "54", label: "5.4 Discrete" }, { val: "55", label: "5.5 Normal" }
+    ]
+};
+
+let questions = [], currentIndex = 0, paperMarks = {}, tInt = null, totalSeconds = 0;
+
+function updateTopicList() {
+    const paper = document.getElementById('paperSelect').value;
+    const topicSelect = document.getElementById('topicSelect');
+    topicSelect.innerHTML = '<option value="">Select Topic</option>';
+    (syllabusData[paper] || []).forEach(t => {
+        let opt = document.createElement('option'); opt.value = t.val; opt.textContent = t.label; topicSelect.appendChild(opt);
+    });
+}
+
+function checkImage(src) { return new Promise(r => { let i = new Image(); i.onload = () => r(true); i.onerror = () => r(false); i.src = src; }); }
+
+async function loadTopicalQuestions() {
+    const subject = document.getElementById('subjectSelect').value;
+    const topic = document.getElementById('topicSelect').value;
+    if (!topic) return alert("Please select a topic first.");
+    
+    questions = []; 
+    let foundAny = false;
+
+    for (let qNum = 1; qNum <= 50; qNum++) {
+        const standardPath = `images/topical/${subject}_tp_${topic}_q${qNum}.png`;
+        const alphaPath = `images/topical/${subject}_tp_${topic}_q${qNum}a.png`;
+        
+        let finalPath = "";
+        if (await checkImage(standardPath)) finalPath = standardPath;
+        else if (await checkImage(alphaPath)) finalPath = alphaPath;
+
+        if (finalPath !== "") {
+            const msPath = finalPath.replace(`_q${qNum}`, `_ms_q${qNum}`);
+            questions.push({ number: qNum, images: [finalPath], markImages: [msPath] });
+            foundAny = true;
+        } else {
+            if (foundAny) break; 
+        }
+    }
+
+    if (questions.length === 0) alert("No questions found for this topic.");
+    else { 
+        currentIndex = 0; 
+        initPaperMarks(subject, topic); 
+        renderUI(); 
+        startTimer(); 
+    }
+}
+
+function renderUI() {
+    if (!questions[currentIndex]) return;
+    const q = questions[currentIndex];
+    document.getElementById('question-number').innerText = `Question ${q.number}`;
+    document.getElementById('question-content').innerHTML = `<img src="${q.images[0]}" style="width:100%">`;
+    document.getElementById('markSchemeViewer').innerHTML = `<img src="${q.markImages[0]}" style="width:100%">`;
+    document.getElementById('headerMarkEntry').style.display = 'flex';
+    document.getElementById('currentQScore').value = paperMarks[q.number]?.got || "";
+    document.getElementById('currentQTotal').value = paperMarks[q.number]?.max || "";
+    renderSidebar(); 
+    updateSaveButtonUI();
+    updateQuestionNote();
+}
+
+function renderSidebar() {
+    document.getElementById('questionList').innerHTML = questions.map((q, i) => 
+        `<div class="q-item ${i === currentIndex ? 'active' : ''}" onclick="goToQuestion(${i})">Q${q.number}</div>`).join('');
+}
+
+window.goToQuestion = (i) => { currentIndex = i; renderUI(); };
+
+function updateMark(qIdx, field, el) {
+    const qNum = questions[currentIndex].number;
+    if (!paperMarks[qNum]) paperMarks[qNum] = { got: 0, max: 0 };
+    paperMarks[qNum][field] = parseInt(el.value) || 0;
+    localStorage.setItem(`marks_${document.getElementById('subjectSelect').value}_tp_${document.getElementById('topicSelect').value}`, JSON.stringify(paperMarks));
+}
+
+function initPaperMarks(sub, top) { paperMarks = JSON.parse(localStorage.getItem(`marks_${sub}_tp_${top}`) || '{}'); }
+
+/* --- TIMER LOGIC --- */
+function startTimer() {
+    if (tInt) clearInterval(tInt);
+    tInt = setInterval(() => {
+        totalSeconds++;
+        document.getElementById("hours").textContent = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        document.getElementById("minutes").textContent = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        document.getElementById("seconds").textContent = String(totalSeconds % 60).padStart(2, "0");
+    }, 1000);
+}
+
+/* --- MODAL WRAPPERS (INDEX STYLE) --- */
+function openModal(id) {
+    const m = document.getElementById(id);
+    m.style.display = 'flex';
+    setTimeout(() => m.classList.add('modal-active'), 10);
+}
+
+function closeModal(id) {
+    const m = document.getElementById(id);
+    m.classList.remove('modal-active');
+    setTimeout(() => m.style.display = 'none', 300);
+}
+
+function finalizeFullPaperMarking() {
+    let got = 0, max = 0, count = 0;
+    Object.values(paperMarks).forEach(m => { if(m.max > 0) { got += m.got; max += m.max; count++; } });
+    document.getElementById('modalAttemptCount').innerText = count;
+    document.getElementById('modalScoreGot').innerText = got;
+    document.getElementById('modalScoreMax').innerText = max;
+    document.getElementById('modalPercent').innerText = max > 0 ? Math.round((got/max)*100) + "%" : "0%";
+    openModal('finishModal');
+}
+
+function closeFinishModal() { closeModal('finishModal'); }
+
+function saveAndExit() {
+    let got = 0, max = 0;
+    Object.values(paperMarks).forEach(m => { got += m.got; max += m.max; });
+    const history = JSON.parse(localStorage.getItem('paperHistory') || '[]');
+    history.unshift({
+        topic: document.getElementById('topicSelect').options[document.getElementById('topicSelect').selectedIndex].text,
+        score: got, total: max, date: new Date().toLocaleDateString(), type: 'Topical'
+    });
+    localStorage.setItem('paperHistory', JSON.stringify(history));
+    window.location.href = 'grades.html';
+}
+
+/* --- SAVE & NOTE LOGIC --- */
+function getTopicalId() {
+    const sub = document.getElementById('subjectSelect').value;
+    const top = document.getElementById('topicSelect').value;
+    const qNum = questions[currentIndex].number;
+    return `${sub}_tp_${top}_q${qNum}`;
+}
+
+function updateQuestionNote() {
+    const noteBox = document.getElementById('active-question-note');
+    const noteText = document.getElementById('note-text-content');
+    const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+    const matched = saved.find(sq => sq.id === getTopicalId());
+
+    if (matched && matched.note && matched.note.trim() !== "") {
+        noteText.textContent = matched.note;
+        noteBox.style.display = 'flex';
+    } else {
+        noteBox.style.display = 'none';
+    }
+}
+
+function updateSaveButtonUI() {
+    const isSaved = JSON.parse(localStorage.getItem('savedQuestions') || '[]').some(s => s.id === getTopicalId());
+    const btn = document.getElementById('saveQuestionBtn');
+    btn.style.color = isSaved ? '#0d9488' : '';
+    btn.innerHTML = isSaved ? '<i class="fas fa-bookmark"></i> Saved' : '<i class="far fa-bookmark"></i> Save';
+}
+
+function handleSaveAction(note = null) {
+    if (questions.length === 0) return;
+    const q = questions[currentIndex];
+    const currentId = getTopicalId();
+    let currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+    const existingIndex = currentSaved.findIndex(sq => sq.id === currentId);
+    
+    if (existingIndex === -1 || note !== null) {
+        const saveObj = { 
+            id: currentId, 
+            subjectVal: document.getElementById('subjectSelect').value, 
+            year: 'topical', 
+            season: document.getElementById('topicSelect').value,
+            variant: '1', 
+            questionNum: q.number,
+            note: note !== null ? note : (currentSaved[existingIndex]?.note || ""),
+            dateSaved: new Date().toISOString(),
+            imagePath: q.images[0]
+        };
+        if (existingIndex > -1) currentSaved[existingIndex] = saveObj;
+        else currentSaved.unshift(saveObj);
+    } else {
+        currentSaved.splice(existingIndex, 1);
+    }
+    
+    localStorage.setItem('savedQuestions', JSON.stringify(currentSaved));
+    updateSaveButtonUI();
+    updateQuestionNote();
+}
+
+/* --- INITIALIZATION --- */
+document.addEventListener('DOMContentLoaded', () => {
+    updateTopicList();
+
+    document.getElementById('loadTopicalBtn').onclick = loadTopicalQuestions;
+    document.getElementById('nextBtn').onclick = () => { if (currentIndex < questions.length - 1) { currentIndex++; renderUI(); } };
+    document.getElementById('prevBtn').onclick = () => { if (currentIndex > 0) { currentIndex--; renderUI(); } };
+    
+    document.getElementById('markSchemeBtn').onclick = () => {
+        const v = document.getElementById('markSchemeViewer');
+        v.style.display = v.style.display === 'none' ? 'block' : 'none';
+    };
+
+    document.getElementById('saveQuestionBtn').onclick = () => handleSaveAction();
+
+    document.getElementById('openNoteModalBtn').onclick = (e) => {
+        if (questions.length === 0) return;
+        const currentSaved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+        const matched = currentSaved.find(sq => sq.id === getTopicalId());
+        document.getElementById('noteTextArea').value = matched ? matched.note : "";
+        openModal('noteModal');
+    };
+
+    document.getElementById('closeNoteModal').onclick = () => closeModal('noteModal');
+    document.getElementById('saveWithNoteConfirmBtn').onclick = () => {
+        handleSaveAction(document.getElementById('noteTextArea').value);
+        closeModal('noteModal');
+    };
+
+    document.getElementById('finalConfirmBtn').onclick = saveAndExit;
+
+    // MF19 Logic
+    document.getElementById('toggleMF19Btn').onclick = () => { 
+        const s = document.getElementById('mf19SplitWindow').style; 
+        s.display = s.display === 'none' ? 'flex' : 'none'; 
+    };
+    document.getElementById('closeMF19Split').onclick = () => document.getElementById('mf19SplitWindow').style.display = 'none';
+
+    // Draggable/Resizable MF19 (optional implementation details omitted for brevity)
+});
+</script>
+</body>
+</html>

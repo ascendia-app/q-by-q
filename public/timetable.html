@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Planner | QbyQ</title>
+     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e2e8f0;
+            --sidebar-width: 240px;
+            --sidebar-collapsed: 80px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+        }
+td {
+    white-space: nowrap; 
+}
+.badge-session {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.session-am { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.session-pm { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.btn-delete {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 8px;
+    transition: color 0.2s;
+}
+.btn-delete:hover {
+    color: var(--danger);
+}
+@media (max-width: 900px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    table {
+        min-width: 800px; 
+    }
+}
+        .main-content {
+            flex: 1;
+            margin-left: 20px;
+            padding: 40px;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar.collapsed + .main-content { margin-left: var(--sidebar-collapsed); }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { margin-bottom: 30px; }
+        h1 { font-size: 2rem; margin: 0; }
+        .exam-form {
+            background: white; padding: 20px; border-radius: 15px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px; margin-bottom: 30px; border: 1px solid var(--border);
+        }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
+        .btn-add {
+            background: var(--primary); color: white; border: none;
+            border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px;
+        }
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.btn-open-modal {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+.btn-open-modal:hover { background: var(--primary-hover); }
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    animation: slideUp 0.3s ease-out;
+}
+@media print {
+    .sidebar, 
+    .btn-open-modal, 
+    .btn-secondary, 
+    .btn-delete,
+    .modal-overlay
+     {
+        display: none !important;
+    }
+    .header-content,
+    .header-flex{
+        margin-top: 40px;
+        margin-left: 40px;
+    
+    
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    .app-container {
+        display: block !important;
+    }
+    body {
+        background-color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .table-container {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        margin: 0.5cm;
+    }
+    .badge-session, .days-count {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    @page {
+        size: A4 landscape; 
+        margin: 0px;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+    th {
+        background-color: #f1f5f9 !important;
+        color: #64748b !important;
+    }
+}
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.modal-header h2 { font-size: 1.25rem; margin: 0; }
+.close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.modal-body .input-group { margin-bottom: 15px; }
+.modal-footer { 
+    display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; 
+}
+.btn-secondary { background: #f1f5f9; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .table-container { background: white; border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 12px 20px; text-align: left; font-size: 0.8rem; color: var(--text-muted); }
+        td { padding: 15px 20px; border-top: 1px solid var(--border); }
+        .days-count { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+        .urgent { background: #fee2e2; color: #ef4444; }
+        .normal { background: #f1f5f9; color: var(--text-muted); }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0 !important; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+         <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Q<span>by</span>Q</div>
+                <button id="toggleSidebar" class="toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+<nav class="nav-links compact-nav">
+    <a href="dashboard.html" class="nav-item">
+        <div class="icon-box"><i class="fas fa-home"></i></div>
+        <span class="nav-text">Dashboard</span>
+    </a>
+    <a href="index.html" class="nav-item">
+        <div class="icon-box"><i class="fas fa-book"></i></div>
+        <span class="nav-text">Practice</span>
+    </a>
+    <a href="syllabus.html" class="nav-item">
+        <div class="icon-box"><i class="fas fa-list-check"></i></div>
+        <span class="nav-text">Syllabus</span>
+    </a>
+     <a href="timetable.html" class="nav-item active">
+        <div class="icon-box"><i class="fas fa-clock"></i></div>
+        <span class="nav-text">Timetable</span>
+    </a>
+    <a href="grades.html" class="nav-item">
+        <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
+        <span class="nav-text">Grades</span>
+    </a>
+    <a href="saved.html" class="nav-item">
+        <div class="icon-box"><i class="fas fa-bookmark"></i></div>
+        <span class="nav-text">Saved</span>
+    </a>
+</nav>
+            <div class="sidebar-footer">
+                <button id="authTopBtn" class="auth-btn logout-state" title="Logout">
+                    <div class="icon-box"><i class="fas fa-sign-out-alt"></i></div>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </div>
+        </aside>
+<main class="main-content">
+    <header class="content-header">
+     <div class="header-flex">
+    <div>
+        <h1>Exam Timetable</h1>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print PDF
+        </button>
+        <button class="btn-open-modal" onclick="openModal()">
+            <i class="fas fa-plus"></i> Add Exam
+        </button>
+    </div>
+</div>
+    </header>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Component</th>
+                <th>Date</th>
+                <th>Session</th>
+                <th>Duration</th>
+                <th>Days Left</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="examList">
+            </tbody>
+    </table>
+</div>
+</main>
+<div id="examModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Exam</h2>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="input-group"><label>Subject</label><input type="text" id="subject" placeholder="e.g. Economics"></div>
+            <div class="input-group"><label>Component</label><input type="text" id="component" placeholder="e.g. P3 Theory"></div>
+            <div class="input-group"><label>Date</label><input type="date" id="date"></div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Session</label>
+                    <select id="session"><option value="AM">AM</option><option value="PM">PM</option></select>
+                </div>
+                <div class="input-group"><label>Duration</label><input type="text" id="duration" placeholder="e.g. 1h 30m"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-add" onclick="submitExam()">Save Exam</button>
+        </div>
+    </div>
+</div>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        if (localStorage.getItem("sidebarCollapsed") === "true") {
+            sidebar.classList.add("collapsed");
+        }
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        });
+        let exams = JSON.parse(localStorage.getItem('myExams')) || [];
+        function addExam() {
+            const subject = document.getElementById('subject').value;
+            const component = document.getElementById('component').value;
+            const date = document.getElementById('date').value;
+            const session = document.getElementById('session').value;
+            const duration = document.getElementById('duration').value;
+            if(!subject || !date) return alert("Fill Subject & Date");
+            exams.push({ id: Date.now(), subject, component, date, session, duration });
+            saveAndRender();
+            document.querySelectorAll('input').forEach(i => i.value = '');
+        }
+        function deleteExam(id) {
+            exams = exams.filter(e => e.id !== id);
+            saveAndRender();
+        }
+  function saveAndRender() {
+    exams.sort((a, b) => new Date(a.date) - new Date(b.date));
+    localStorage.setItem('myExams', JSON.stringify(exams));
+    const list = document.getElementById('examList');
+    if (exams.length === 0) {
+        list.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">No exams added yet. Click "+ Add Exam" to start.</td></tr>';
+        return;
+    }
+    list.innerHTML = exams.map(exam => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const examDate = new Date(exam.date);
+        examDate.setHours(0, 0, 0, 0);
+        const diffTime = examDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const urgentClass = diffDays <= 7 ? 'urgent' : 'normal';
+        const daysText = diffDays < 0 ? 'Passed' : (diffDays === 0 ? 'Today' : diffDays + 'd left');
+        return `
+            <tr>
+                <td style="font-weight: 700; color: var(--text-main);">${exam.subject}</td>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">${exam.component || '-'}</td>
+                <td>${new Date(exam.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                <td><span class="badge-session ${exam.session === 'AM' ? 'session-am' : 'session-pm'}">${exam.session}</span></td>
+                <td style="color: var(--text-muted);">${exam.duration || '-'}</td>
+                <td><span class="days-count ${urgentClass}">${daysText}</span></td>
+                <td>
+                    <button class="btn-delete" onclick="deleteExam(${exam.id})" title="Delete Exam">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+        saveAndRender();
+        const modal = document.getElementById('examModal');
+function openModal() {
+    modal.style.display = 'flex';
+}
+function closeModal() {
+    modal.style.display = 'none';
+}
+window.onclick = function(event) {
+    if (event.target == modal) closeModal();
+}
+function submitExam() {
+    const subject = document.getElementById('subject').value;
+    const component = document.getElementById('component').value;
+    const date = document.getElementById('date').value;
+    const session = document.getElementById('session').value;
+    const duration = document.getElementById('duration').value;
+    if(!subject || !date) {
+        alert("Please fill in Subject and Date");
+        return;
+    }
+    exams.push({ id: Date.now(), subject, component, date, session, duration });
+    saveAndRender();
+    document.querySelectorAll('.modal-body input').forEach(i => i.value = '');
+    closeModal();
+}
+    </script>
+</body>
+<<<<<<< HEAD
+<<<<<<< HEAD
+</html>
+=======
+</html>
+>>>>>>> c36270359b50f938159d4451ce652414a5eb813f
+=======
+</html>
+>>>>>>> c36270359b50f938159d4451ce652414a5eb813f
