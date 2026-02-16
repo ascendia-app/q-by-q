@@ -433,7 +433,10 @@ function renderUI() {
             const btn = document.createElement("button");
             btn.textContent = q.number;
             btn.className = index === currentIndex ? "question-btn active" : "question-btn";
-            btn.onclick = () => { currentIndex = index; renderUI(); };
+            btn.onclick = () => { 
+                currentIndex = index; 
+                renderUI(); 
+            };
             questionList.appendChild(btn);
         });
     }
@@ -446,8 +449,6 @@ function renderUI() {
     const mcqWrapper = document.getElementById('mcq-options-wrapper');
     const mcqButtons = document.getElementById('mcq-buttons');
     const marksEntry = document.getElementById('headerMarkEntry');
-    
-    // TARGETING YOUR SPECIFIC HTML ID
     const msBtn = document.getElementById('markSchemeBtn');
 
     // 4. Logic Condition for Economics MCQs (9708)
@@ -475,11 +476,13 @@ function renderUI() {
             `).join('');
         }
 
-        // --- CHANGE MARK SCHEME BTN TO "SHOW ANSWER" ---
+        // --- AESTHETIC "IN-BUTTON" SHOW ANSWER ---
         if (msBtn) {
+            // Reset to default state whenever the question changes
             msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
+            msBtn.style.background = ""; // Resets to CSS default
+            
             msBtn.onclick = (e) => {
-                // Prevent modal from opening
                 if (e) e.preventDefault(); 
 
                 const activeQuestions = window.questions || questions;
@@ -498,9 +501,13 @@ function renderUI() {
                 const correctKeyString = HARDCODED_DATABASE[paperID];
                 if (correctKeyString) {
                     const correctAns = correctKeyString[currentIndex];
-                    alert(`The correct answer for Question ${currentQ.number} is: ${correctAns}`);
+                    
+                    // Update button content and color
+                    msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct Answer: ${correctAns}`;
+                    msBtn.style.background = "#059669"; // Slightly darker emerald for clarity
+                    msBtn.style.transition = "background 0.3s ease";
                 } else {
-                    alert("Answer key not found for this Econ paper in DATABASE.");
+                    msBtn.innerHTML = `<i class="fas fa-times-circle"></i> Key Missing`;
                 }
             };
         }
@@ -512,6 +519,7 @@ function renderUI() {
 
         // Restore Standard Mark Scheme behavior
         if (msBtn) {
+            msBtn.style.background = ""; 
             msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
             msBtn.onclick = () => {
                 const activeQuestions = window.questions || questions;
@@ -525,7 +533,8 @@ function renderUI() {
     saveState(); 
 }
 
-    window.saveMCQAnswer = (letter) => {
+// Global Answer Saving Function
+window.saveMCQAnswer = (letter) => {
     userAnswers[currentIndex] = letter;
     renderUI(); 
 };
