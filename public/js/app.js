@@ -568,7 +568,7 @@ const startLoadingProcess = () => {
    const CLOUD_NAME = "daiieadws"; 
 const TARGET_FOLDER = ""; // Keep this empty if images are in root
 // We remove the trailing slash to prevent double slashes //
-const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto`;
+const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/`;
 
     questions = [];
     let qNum = 1;
