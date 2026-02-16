@@ -1457,3 +1457,15 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+function loadNextQuestion() {
+    console.log("Attempting to load paper/question...");
+    
+    // 1. Hide the loading spinner (if you have one)
+    const loader = document.getElementById('loader'); // Check if your ID is 'loader'
+    if (loader) loader.style.display = 'none';
+
+    // 2. Logic to show the question
+    // If you have a specific way you want to load the images from Cloudinary,
+    // that logic goes here. For now, this will stop the crash.
+    alert("Function called! Now we just need to link your Cloudinary logic here.");
+}
