@@ -1,13 +1,24 @@
 let questions = [];
+window.userAnswers = {};
 let currentIndex = 0;
 const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
 let userAnswers = [];
 window.userAnswers = {};
 let paperMarks = {};
-window.saveMCQAnswer = letter => {
-  if (!window.userAnswers) window.userAnswers = {};
-  window.userAnswers[currentIndex] = letter;
-  renderUI();
+window.saveMCQAnswer = (letter) => {
+    // 1. Ensure the global container exists
+    if (typeof window.userAnswers === 'undefined' || window.userAnswers === null) {
+        window.userAnswers = {};
+    }
+    
+    // 2. Save the letter to the current question index
+    window.userAnswers[currentIndex] = letter;
+    
+    // 3. Debugging: This will show up in your F12 console
+    console.log("Saving Answer:", letter, "for Question Index:", currentIndex);
+    
+    // 4. Refresh UI to show the green highlight
+    renderUI(); 
 };
 window.finishEconomicsPaper = () => {
   const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
