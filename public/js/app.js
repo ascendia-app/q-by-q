@@ -7,8 +7,14 @@ window.userAnswers = {};
 let paperMarks = {};
 
 window.saveMCQAnswer = (letter) => {
-    userAnswers[currentIndex] = letter;
-    renderUI(); // Re-run renderUI to update the button colors
+    // Ensure the global object exists
+    if (!window.userAnswers) window.userAnswers = {};
+    
+    // Save by index
+    window.userAnswers[currentIndex] = letter;
+    
+    console.log(`Saved Q${currentIndex + 1}: ${letter}`); // Debugging line
+    renderUI(); 
 };
 window.finishEconomicsPaper = () => {
     // 1. Generate the Key ID (e.g., 9708_s24_31)
@@ -1109,12 +1115,13 @@ function finalizeFullPaperMarking() {
     const activeQuestions = window.questions || questions;
     if (!activeQuestions || activeQuestions.length === 0) return;
 
-    // Detect Subject
+    // 1. Detect Subject and Paper ID from the first question's image path
     const fullPath = activeQuestions[0].img || activeQuestions[0].images[0];
     const fileName = fullPath.split('/').pop();
     const subjectCode = fileName.split('_')[0]; 
     const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
 
+    // 2. Economics (9708) Automated Marking Logic
     if (subjectCode === "9708") {
         const checkingModal = document.getElementById('checkingModal');
         if (checkingModal) checkingModal.style.display = 'flex';
@@ -1126,62 +1133,71 @@ function finalizeFullPaperMarking() {
 
         const correctKeyString = HARDCODED_DATABASE[paperID];
         if (!correctKeyString) {
-            alert("Answer key not found for this Econ paper.");
+            alert("Answer key not found for Econ paper: " + paperID);
             if (checkingModal) checkingModal.style.display = 'none';
             return;
         }
 
         const correctKey = correctKeyString.split('');
 
+        // Delay for aesthetic "Checking..." feel
         setTimeout(() => {
             let score = 0;
             let attempted = 0;
             let total = activeQuestions.length;
             let wrongQuestions = [];
 
+            // Loop through questions and compare userAnswers to correctKey
             for (let i = 0; i < total; i++) {
-                // Check window.userAnswers (make sure your button clicks save here!)
-                const userAns = window.userAnswers ? window.userAnswers[i] : null; 
+                // IMPORTANT: Access the global userAnswers object
+                // We use i (the index) to match the position in correctKey
+                const userAns = (window.userAnswers && window.userAnswers[i]) ? window.userAnswers[i] : null; 
                 const correctAns = correctKey[i];
 
-                if (userAns && userAns !== "None") attempted++; 
+                if (userAns && userAns !== "None") {
+                    attempted++; 
 
-                if (userAns === correctAns) {
-                    score++;
-                } else {
-                    const actualQNum = activeQuestions[i].number || (i + 1);
-                    wrongQuestions.push({
-                        ...activeQuestions[i],
-                        questionNum: actualQNum, 
-                        userSelected: userAns || "None",
-                        correctIs: correctAns, 
-                        subjectVal: "9708",
-                        paperInfo: paperID,
-                        note: `Your Answer: ${userAns || 'None'} | Correct Answer: ${correctAns}`
-                    });
+                    if (userAns === correctAns) {
+                        score++;
+                    } else {
+                        const actualQNum = activeQuestions[i].number || (i + 1);
+                        wrongQuestions.push({
+                            ...activeQuestions[i],
+                            questionNum: actualQNum, 
+                            userSelected: userAns,
+                            correctIs: correctAns, 
+                            subjectVal: "9708",
+                            paperInfo: paperID,
+                            note: `Your Answer: ${userAns} | Correct Answer: ${correctAns}`
+                        });
+                    }
                 }
             }
             
-            // HIDE checking loader THEN show result
+            // HIDE checking loader THEN show results
             if (checkingModal) checkingModal.style.display = 'none';
+            
+            // Pass the calculated stats to your UI modal
             showFinishModalUI(score, total, attempted, wrongQuestions);
             
         }, 1500);
 
     } else {
-        // Math/Psych Path
+        // 3. Math/Psychology Manual Marking Path
         let totalGot = 0;
         let totalMax = 0;
         let attemptedCount = 0;
 
-        // Use the paperMarks object you already have
-        Object.values(paperMarks).forEach(m => {
-            if (m.max > 0) {
-                totalGot += Number(m.got || 0);
-                totalMax += Number(m.max || 0);
-                attemptedCount++;
-            }
-        });
+        // Uses the paperMarks object populated by manual input fields
+        if (typeof paperMarks !== 'undefined') {
+            Object.values(paperMarks).forEach(m => {
+                if (m.max > 0) {
+                    totalGot += Number(m.got || 0);
+                    totalMax += Number(m.max || 0);
+                    attemptedCount++;
+                }
+            });
+        }
 
         showFinishModalUI(totalGot, totalMax, attemptedCount, []);
     }
