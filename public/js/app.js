@@ -538,7 +538,6 @@ window.saveMCQAnswer = (letter) => {
             noteModal.style.display = 'none';
         };
     }
-
 if (loadPaperBtn) {
     loadPaperBtn.onclick = (e) => {
         if (e && e.isTrusted) {
@@ -553,108 +552,98 @@ if (loadPaperBtn) {
     };
 }
 
-// 3. THE CORE LOGIC (Defined globally so it's not "missing")
+// 3. THE CORE LOGIC
 const startLoadingProcess = () => {
     const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
     let paperVal = paperSelect.value.toLowerCase();
+    const subCode = subjectSelect.value;
 
-    if (subjectSelect.value === "9990" || subjectSelect.value === "9708") {
+    // Special handling for MCQ-based subjects
+    const isMCQSubject = (subCode === "9990" || subCode === "9708");
+
+    if (isMCQSubject) {
         paperVal = paperVal.replace('p', '');
     }
 
     const pCode = (paperMap[paperVal] || paperVal) + variantSelect.value;
     const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
 
-   const CLOUD_NAME = "daiieadws"; 
-const TARGET_FOLDER = ""; // Keep this empty if images are in root
-// We remove the trailing slash to prevent double slashes //
-const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/`;
+    const CLOUD_NAME = "daiieadws"; 
+    const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/`;
 
     questions = [];
     let qNum = 1;
 
-    // This is the function that was "missing"
+    // Helper to check a specific image path
+    const checkImage = (fileName, char) => {
+        return new Promise((resolve) => {
+            const qPath = `${BASE_URL}${fileName}`;
+            const img = new Image();
+            img.onload = () => resolve({ success: true, qPath, char, fileName });
+            img.onerror = () => resolve({ success: false });
+            img.src = qPath;
+        });
+    };
+
     const loadNextQuestion = () => {
-        let parts = []; let markParts = []; let partIndex = 0;
-        const partLetters = "abcdefgh";
+        // If it's Economics/Psychology, only check for "a" (since you named them q1a, q2a)
+        // Otherwise, check for main question and parts a-e
+        const partLetters = isMCQSubject ? ["a"] : ["", "a", "b", "c", "d", "e"]; 
+        
+        const attempts = partLetters.map(char => {
+            const fName = `${subCode}_${yCode}_qp_${pCode}_q${qNum}${char}.png`;
+            return checkImage(fName, char);
+        });
 
-        const tryPart = () => {
-            const char = partLetters[partIndex];
-            const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.png`;
-            const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.png`;
-         
-            const qPath = `${BASE_URL}${fileName}`;
-               console.log("Checking for image at:", qPath); // ADD THIS LINE
-            const mPath = `${BASE_URL}${msName}`;
+        Promise.all(attempts).then(results => {
+            const validParts = results.filter(r => r.success);
 
-            const img = new Image();
-            img.onload = () => {
-                parts.push(qPath); markParts.push(mPath);
-                partIndex++; 
-                tryPart();
-            };
-            img.onerror = () => {
-                if (partIndex === 0) tryNoPart();
-                else finishQuestion();
-            };
-            img.src = qPath;
-        };
+            if (validParts.length > 0) {
+                // Sort them (q1, q1a, q1b...)
+                validParts.sort((a, b) => a.char.localeCompare(b.char));
 
-        const tryNoPart = () => {
-            const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.png`;
-            const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.png`;
-            const qPath = `${BASE_URL}${fileName}`;
-            const mPath = `${BASE_URL}${msName}`;
-
-            const img = new Image();
-            img.onload = () => {
-                questions.push({ 
-                    number: qNum, 
-                    img: qPath, 
-                    images: [qPath], 
-                    markImages: [mPath] 
+                const qPaths = validParts.map(p => p.qPath);
+                const mPaths = validParts.map(p => {
+                    const msFileName = p.fileName.replace('_qp_', '_ms_');
+                    return `${BASE_URL}${msFileName}`;
                 });
-                qNum++; 
-                loadNextQuestion();
-            };
-            img.onerror = () => finalizeLoading();
-            img.src = qPath;
-        };
 
-        const finishQuestion = () => {
-            questions.push({ 
-                number: qNum, 
-                img: parts[0], 
-                images: parts, 
-                markImages: markParts 
-            });
-            qNum++; 
-            loadNextQuestion();
-        };
+                questions.push({
+                    number: qNum,
+                    img: qPaths[0],
+                    images: qPaths,
+                    markImages: mPaths
+                });
 
-        tryPart();
+                qNum++;
+                loadNextQuestion(); 
+            } else {
+                finalizeLoading();
+            }
+        });
     };
 
     loadNextQuestion();
 };
 
 const finalizeLoading = () => {
-    loadPaperBtn.disabled = false;
-    loadPaperBtn.innerHTML = originalBtnHTML;
+    if (loadPaperBtn) {
+        loadPaperBtn.disabled = false;
+        loadPaperBtn.innerHTML = originalBtnHTML;
+    }
     
     if (questions.length === 0) {
         if (typeof notFoundModal !== 'undefined' && notFoundModal) {
             notFoundModal.style.display = 'flex';
         } else {
-            alert("No questions found for this paper selection.");
+            alert("No questions found for this paper. Check if your Cloudinary names match!");
         }
         return; 
     }
 
     window.questions = questions; 
-    // ... (rest of your finalizeLoading logic)
     if (typeof renderUI === "function") renderUI();
-    console.log("Paper Loaded Successfully!");
+    console.log("Paper Loaded Successfully! Count:", questions.length);
 };
     
     /* --- SESSION RECOVERY & INITIALIZATION --- */
