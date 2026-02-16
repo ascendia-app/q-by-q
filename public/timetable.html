@@ -7,6 +7,7 @@
      <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
@@ -20,16 +21,31 @@
             --sidebar-width: 240px;
             --sidebar-collapsed: 80px;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
-            overflow-y: auto;
-        }
+     body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    margin: 0;
+    display: flex;
+    min-height: 100vh; /* Ensures it's at least as tall as the screen */
+    overflow-y: visible; /* Let the content push the page down */
+}
 td {
     white-space: nowrap; 
-     overflow-y: auto;
+  
+}
+.table-container {
+    background: white;
+    border-radius: 15px;
+    border: 1px solid var(--border);
+    width: 100%;
+    margin-bottom: 50px; /* Space at the bottom so it doesn't touch the edge */
+    /* Only allow horizontal scroll here, let vertical be handled by the page */
+    overflow-x: auto; 
+    overflow-y: visible; 
+}
+.container, td {
+    overflow-y: visible !important; 
+    height: auto !important;
 }
 .badge-session {
     padding: 4px 10px;
@@ -37,6 +53,14 @@ td {
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
+}
+.main-content {
+    flex: 1;
+    padding: 40px;
+    margin-left: 20px;
+    display: block; /* Ensure it's not a restricted flex item */
+    height: auto;   /* Allow it to grow with content */
+    overflow-y: visible; /* Remove the "trap" */
 }
 .session-am { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .session-pm { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
@@ -64,10 +88,10 @@ td {
             margin-left: 20px;
             padding: 40px;
             transition: margin-left 0.3s ease;
-             overflow-y: auto;
+           
         }
-        .sidebar.collapsed + .main-content { margin-left: var(--sidebar-collapsed); }
-        .container { max-width: 900px; margin: 0 auto;  overflow-y: auto; }
+        .sidebar.collapsed { margin-left: var(--sidebar-collapsed); }
+        .container { max-width: 900px; margin: 0 auto;}
         header { margin-bottom: 30px; }
         h1 { font-size: 2rem; margin: 0; }
         .exam-form {
@@ -137,26 +161,24 @@ td {
     
     
     }
-    .main-content {
-        margin-left: 0 !important;
-        padding: 0 !important;
-        overflow-y: auto;
-    }
-    .app-container {
-        display: block !important;
-         overflow-y: auto;
-    }
-    body {
-        background-color: white !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-         overflow-y: auto;
-    }
+ .main-content {
+    flex: 1;
+    /* This allows the content to expand and scroll naturally */
+    min-height: 100vh;
+    padding: 40px;
+    transition: margin-left 0.3s ease;
+    /* Remove overflow-y: auto from here if you want the whole page to scroll */
+}
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+ 
     .table-container {
         box-shadow: none !important;
         border: 1px solid #e2e8f0 !important;
         margin: 0.5cm;
-         overflow-y: auto;
     }
     .badge-session, .days-count {
         -webkit-print-color-adjust: exact;
@@ -169,12 +191,12 @@ td {
     table {
         width: 100% !important;
         border-collapse: collapse;
-         overflow-y: auto;
+       
     }
     th {
         background-color: #f1f5f9 !important;
         color: #64748b !important;
-         overflow-y: auto;
+      
     }
 }
 @keyframes slideUp {
