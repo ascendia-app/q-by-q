@@ -6,19 +6,12 @@ let userAnswers = [];
 window.userAnswers = {};
 let paperMarks = {};
 window.saveMCQAnswer = (letter) => {
-    // 1. Ensure the global container exists
-    if (typeof window.userAnswers === 'undefined' || window.userAnswers === null) {
-        window.userAnswers = {};
-    }
+    if (!window.userAnswers) window.userAnswers = {};
     
-    // 2. Save the letter to the current question index
     window.userAnswers[currentIndex] = letter;
+    console.log("Answer saved:", letter, "at index:", currentIndex);
     
-    // 3. Debugging: This will show up in your F12 console
-    console.log("Saving Answer:", letter, "for Question Index:", currentIndex);
-    
-    // 4. Refresh UI to show the green highlight
-    renderUI(); 
+    renderUI(); // This re-runs the logic below to apply the colors
 };
 window.finishEconomicsPaper = () => {
   const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
@@ -327,37 +320,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSaveButtonState();
     updateQuestionNote();
   }
-  function renderUI() {
-    renderQuestion();
-    if (questionList) {
-      questionList.innerHTML = "";
-      questions.forEach((q, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = q.number;
-        btn.className = index === currentIndex ? "question-btn active" : "question-btn";
-        btn.onclick = () => {
-          currentIndex = index;
-          renderUI();
-        };
-        questionList.appendChild(btn);
-      });
-    }
-    if (prevBtn) prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
-    if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 || questions.length === 0 ? "hidden" : "visible";
-    const mcqWrapper = document.getElementById('mcq-options-wrapper');
-    const mcqButtons = document.getElementById('mcq-buttons');
-    const marksEntry = document.getElementById('headerMarkEntry');
-    const msBtn = document.getElementById('markSchemeBtn');
-    const subCode = subjectSelect.value;
-    const isEconMCQ = subCode === "9708";
-    if (isEconMCQ) {
-      if (mcqWrapper) mcqWrapper.style.display = "block";
-      if (marksEntry) marksEntry.style.display = "none";
-   if (mcqButtons) {
-    mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => {
-        // Look specifically at window.userAnswers
+function renderUI() {
+  renderQuestion();
+
+  // 1. Render Question Navigation List in Sidebar
+  if (questionList) {
+    questionList.innerHTML = "";
+    questions.forEach((q, index) => {
+      const btn = document.createElement("button");
+      btn.textContent = q.number;
+      btn.className = index === currentIndex ? "question-btn active" : "question-btn";
+      btn.onclick = () => {
+        currentIndex = index;
+        renderUI();
+      };
+      questionList.appendChild(btn);
+    });
+  }
+
+  // 2. Navigation Button Visibility
+  if (prevBtn) prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
+  if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 || questions.length === 0 ? "hidden" : "visible";
+
+  // 3. UI Element References
+  const mcqWrapper = document.getElementById('mcq-options-wrapper');
+  const mcqButtons = document.getElementById('mcq-buttons');
+  const marksEntry = document.getElementById('headerMarkEntry');
+  const msBtn = document.getElementById('markSchemeBtn');
+
+  // 4. Logic Condition for Economics MCQs (9708)
+  const subCode = subjectSelect.value;
+  const isEconMCQ = subCode === "9708";
+
+  if (isEconMCQ) {
+    // --- MCQ MODE ---
+    if (mcqWrapper) mcqWrapper.style.display = "block";
+    if (marksEntry) marksEntry.style.display = "none";
+
+    // Generate A, B, C, D Buttons with conditional styling for selection
+    if (mcqButtons) {
+      mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => {
+        // Check selection state using the global window.userAnswers
         const isSelected = window.userAnswers && window.userAnswers[currentIndex] === letter;
-        
+
         return `
             <button onclick="saveMCQAnswer('${letter}')" 
                 style="
@@ -370,49 +375,68 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ${letter}
             </button>
         `;
-    }).join('');
-}
-      if (msBtn) {
-        msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
-        msBtn.style.background = "";
-        msBtn.onclick = e => {
-          if (e) e.preventDefault();
-          const activeQuestions = window.questions || questions;
-          const currentQ = activeQuestions[currentIndex];
-          const fullPath = currentQ.img || currentQ.images[0];
-          const fileName = fullPath.split('/').pop();
-          const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
-          const HARDCODED_DATABASE = {
-            "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC",
-            "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB"
-          };
-          const correctKeyString = HARDCODED_DATABASE[paperID];
-          if (correctKeyString) {
-            const correctAns = correctKeyString[currentIndex];
-            msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct Answer: ${correctAns}`;
-            msBtn.style.background = "#059669";
-            msBtn.style.transition = "background 0.3s ease";
-          } else {
-            msBtn.innerHTML = `<i class="fas fa-times-circle"></i> Key Missing`;
-          }
-        };
-      }
-    } else {
-      if (mcqWrapper) mcqWrapper.style.display = "none";
-      if (marksEntry) marksEntry.style.display = "flex";
-      if (msBtn) {
-        msBtn.style.background = "";
-        msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
-        msBtn.onclick = () => {
-          const activeQuestions = window.questions || questions;
-          if (activeQuestions[currentIndex] && typeof showMarkSchemeModal === "function") {
-            showMarkSchemeModal(activeQuestions[currentIndex].markImages);
-          }
-        };
-      }
+      }).join('');
     }
-    saveState();
+
+    // --- AESTHETIC "IN-BUTTON" SHOW ANSWER ---
+    if (msBtn) {
+      // Reset button to default state whenever we switch questions
+      msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
+      msBtn.style.background = "";
+      
+      msBtn.onclick = e => {
+        if (e) e.preventDefault();
+        
+        const activeQuestions = window.questions || questions;
+        const currentQ = activeQuestions[currentIndex];
+        const fullPath = currentQ.img || currentQ.images[0];
+        const fileName = fullPath.split('/').pop();
+        const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
+
+        const HARDCODED_DATABASE = {
+          "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC",
+          "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB"
+        };
+
+        const correctKeyString = HARDCODED_DATABASE[paperID];
+        if (correctKeyString) {
+          const correctAns = correctKeyString[currentIndex];
+          // Transform the button itself into the answer display
+          msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct Answer: ${correctAns}`;
+          msBtn.style.background = "#059669";
+          msBtn.style.transition = "background 0.3s ease";
+        } else {
+          msBtn.innerHTML = `<i class="fas fa-times-circle"></i> Key Missing`;
+        }
+      };
+    }
+  } else {
+    // --- STANDARD MODE (Math/Psych) ---
+    if (mcqWrapper) mcqWrapper.style.display = "none";
+    if (marksEntry) marksEntry.style.display = "flex";
+    
+    if (msBtn) {
+      msBtn.style.background = "";
+      msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
+      msBtn.onclick = () => {
+        const activeQuestions = window.questions || questions;
+        if (activeQuestions[currentIndex] && typeof showMarkSchemeModal === "function") {
+          showMarkSchemeModal(activeQuestions[currentIndex].markImages);
+        }
+      };
+    }
   }
+  saveState();
+}
+
+/**
+ * Global function to save MCQ choices
+ */
+window.saveMCQAnswer = (letter) => {
+    if (!window.userAnswers) window.userAnswers = {};
+    window.userAnswers[currentIndex] = letter;
+    renderUI(); // Re-render to update button highlights
+};
   function updateSaveButtonState() {
     if (!questions[currentIndex] || !saveBtn) return;
     const q = questions[currentIndex];
