@@ -22,45 +22,46 @@
 }
 
 /* 1. FIX: Ensure body allows the document to grow */
+/* 1. The Body needs to be the scrolling anchor */
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg);
     margin: 0;
-    display: flex; /* Sidebar layout */
-    min-height: 100vh;
-    overflow-x: hidden; /* Prevent horizontal shake */
-    overflow-y: auto;   /* ALLOW VERTICAL SCROLL */
+    display: flex; 
+    min-height: 100vh;   /* Minimum full screen height */
+    overflow-y: auto;    /* This is the master vertical scroll */
+    overflow-x: hidden;
+    align-items: stretch; 
 }
 
-/* 2. FIX: Main Content should grow with the table */
+/* 2. Remove the "height: 100vh" or "overflow: hidden" from main-content */
 .main-content {
     flex: 1;
-    margin-left: 0; /* Adjusted by JS or sidebar class */
     padding: 40px;
-    transition: margin-left 0.3s ease;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    margin-left: 0;      /* Ensure this doesn't conflict with sidebar */
+    min-height: 100vh;   /* Allow it to be at least screen height */
+    height: auto;        /* CRITICAL: Let it grow taller than the screen */
+    display: block;      /* Change from flex to block to allow natural document flow */
 }
 
-.container { 
-    width: 100%;
-    max-width: 1000px; 
+/* 3. Ensure the Container doesn't clip */
+.container {
+    max-width: 1000px;
     margin: 0 auto;
+    height: auto;
+    overflow: visible;   /* Do not trap scroll here */
 }
 
-/* 3. FIX: Table Container - Horizontal scroll only */
-.table-container { 
-    background: white; 
-    border-radius: 15px; 
-    border: 1px solid var(--border); 
+/* 4. Table Container should ONLY scroll horizontally */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    border: 1px solid var(--border);
     width: 100%;
-    overflow-x: auto;   /* Scroll sideways if table is wide */
-    overflow-y: hidden; /* Don't trap vertical scroll here */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 50px;
+    overflow-x: auto;    /* Sideways scroll for wide tables */
+    overflow-y: visible; /* Let vertical scroll pass through to the body */
+    margin-bottom: 100px; /* Essential: creates space at the bottom */
 }
-
 table { 
     width: 100%; 
     border-collapse: collapse; 
