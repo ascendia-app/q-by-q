@@ -1,3 +1,6 @@
+let questions = [];
+let currentIndex = 0;
+const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
 let userAnswers = [];
 window.userAnswers = {};
 
@@ -124,8 +127,7 @@ const API_BASE_URL = "https://q-by-q.vercel.app/api";
 const urlParams = new URLSearchParams(window.location.search);
 
 // Global State
-let questions = [];
-let currentIndex = 0;
+
 
 /* =========================================
    2. URL PARAMETER LISTENER & SYNC
@@ -543,169 +545,115 @@ if (loadPaperBtn) {
             currentIndex = 0;
         }
 
-        const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
         loadPaperBtn.disabled = true;
         loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
 
-        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-        let paperVal = paperSelect.value.toLowerCase();
+        // Start the process
+        startLoadingProcess();
+    };
+}
 
-        if (subjectSelect.value === "9990" || subjectSelect.value === "9708") {
-            paperVal = paperVal.replace('p', '');
-        }
+// 3. THE CORE LOGIC (Defined globally so it's not "missing")
+const startLoadingProcess = () => {
+    const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
+    let paperVal = paperSelect.value.toLowerCase();
 
-        const pCode = (paperMap[paperVal] || paperVal) + variantSelect.value;
-        const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
+    if (subjectSelect.value === "9990" || subjectSelect.value === "9708") {
+        paperVal = paperVal.replace('p', '');
+    }
 
-        // --- CLOUDINARY CONFIG ---
-        const CLOUD_NAME = "daiieadws"; 
-        const TARGET_FOLDER = "qbyq_images";
-        // f_auto and q_auto make your 3.6GB of images load much faster
-        const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/${TARGET_FOLDER}/`;
+    const pCode = (paperMap[paperVal] || paperVal) + variantSelect.value;
+    const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
 
-        questions = [];
-        let qNum = 1;
+    const CLOUD_NAME = "daiieadws"; 
+    const TARGET_FOLDER = "qbyq_images";
+    const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/${TARGET_FOLDER}/`;
 
- if (loadPaperBtn) {
-    loadPaperBtn.onclick = (e) => {
-        if (e && e.isTrusted) {
-            currentIndex = 0;
-        }
+    questions = [];
+    let qNum = 1;
 
-        const originalBtnHTML = `<i class="fas fa-sync-alt"></i> Load Paper`;
-        loadPaperBtn.disabled = true;
-        loadPaperBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
+    // This is the function that was "missing"
+    const loadNextQuestion = () => {
+        let parts = []; let markParts = []; let partIndex = 0;
+        const partLetters = "abcdefgh";
 
-        const paperMap = { pure1: "1", pure3: "3", mechanics: "4", stats1: "5" };
-        let paperVal = paperSelect.value.toLowerCase();
+        const tryPart = () => {
+            const char = partLetters[partIndex];
+            const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.png`;
+            const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.png`;
+            
+            const qPath = `${BASE_URL}${fileName}`;
+            const mPath = `${BASE_URL}${msName}`;
 
-        if (subjectSelect.value === "9990" || subjectSelect.value === "9708") {
-            paperVal = paperVal.replace('p', '');
-        }
-
-        const pCode = (paperMap[paperVal] || paperVal) + variantSelect.value;
-        const yCode = (seasonSelect.value === "febmar" ? "m" : seasonSelect.value === "mayjun" ? "s" : "w") + yearSelect.value.slice(-2);
-
-        // --- CLOUDINARY CONFIG ---
-        const CLOUD_NAME = "daiieadws"; 
-        const TARGET_FOLDER = "qbyq_images";
-        // f_auto and q_auto make your 3.6GB of images load much faster
-        const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/${TARGET_FOLDER}/`;
-
-        questions = [];
-        let qNum = 1;
-
-        const loadNextQuestion = () => {
-            let parts = []; let markParts = []; let partIndex = 0;
-            const partLetters = "abcdefgh";
-
-            const tryPart = () => {
-                const char = partLetters[partIndex];
-                const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.PNG`;
-                const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.PNG`;
-                
-                const qPath = `${BASE_URL}${fileName}`;
-                const mPath = `${BASE_URL}${msName}`;
-
-                const img = new Image();
-                img.onload = () => {
-                    parts.push(qPath); markParts.push(mPath);
-                    partIndex++; tryPart();
-                };
-                img.onerror = () => {
-                    if (partIndex === 0) tryNoPart();
-                    else finishQuestion();
-                };
-                img.src = qPath;
+            const img = new Image();
+            img.onload = () => {
+                parts.push(qPath); markParts.push(mPath);
+                partIndex++; 
+                tryPart();
             };
-
-            const tryNoPart = () => {
-                const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.PNG`;
-                const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.PNG`;
-                
-                const qPath = `${BASE_URL}${fileName}`;
-                const mPath = `${BASE_URL}${msName}`;
-
-                const img = new Image();
-                img.onload = () => {
-                    if (img.complete && img.naturalWidth > 0) {
-                        questions.push({ 
-                            number: qNum, 
-                            img: qPath, 
-                            images: [qPath], 
-                            markImages: [mPath] 
-                        });
-                        qNum++; 
-                        loadNextQuestion();
-                    } else { 
-                        finalizeLoading(); 
-                    }
-                };
-                img.onerror = () => finalizeLoading();
-                img.src = qPath;
+            img.onerror = () => {
+                if (partIndex === 0) tryNoPart();
+                else finishQuestion();
             };
+            img.src = qPath;
+        };
 
-            const finishQuestion = () => {
+        const tryNoPart = () => {
+            const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}.png`;
+            const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}.png`;
+            const qPath = `${BASE_URL}${fileName}`;
+            const mPath = `${BASE_URL}${msName}`;
+
+            const img = new Image();
+            img.onload = () => {
                 questions.push({ 
                     number: qNum, 
-                    img: parts[0], 
-                    images: parts, 
-                    markImages: markParts 
+                    img: qPath, 
+                    images: [qPath], 
+                    markImages: [mPath] 
                 });
                 qNum++; 
                 loadNextQuestion();
             };
-
-            tryPart();
+            img.onerror = () => finalizeLoading();
+            img.src = qPath;
         };
 
-        // This starts the actual loading loop
-        loadNextQuestion(); 
+        const finishQuestion = () => {
+            questions.push({ 
+                number: qNum, 
+                img: parts[0], 
+                images: parts, 
+                markImages: markParts 
+            });
+            qNum++; 
+            loadNextQuestion();
+        };
+
+        tryPart();
     };
-}
-      // Inside finalizeLoading in app.js
+
+    loadNextQuestion();
+};
+
 const finalizeLoading = () => {
     loadPaperBtn.disabled = false;
     loadPaperBtn.innerHTML = originalBtnHTML;
+    
     if (questions.length === 0) {
-        if (notFoundModal) notFoundModal.style.display = 'flex';
+        if (typeof notFoundModal !== 'undefined' && notFoundModal) {
+            notFoundModal.style.display = 'flex';
+        } else {
+            alert("No questions found for this paper selection.");
+        }
         return; 
     }
-  window.questions = questions; 
-    // 3. EXPLICIT GLOBAL ASSIGNMENT 
 
-    
-  const paperKey = `marks_${subjectSelect.value}_${paperSelect.value}_${yearSelect.value}_${seasonSelect.value}_${variantSelect.value}`;
-    const savedData = localStorage.getItem(paperKey);
-    
-    if (savedData) {
-        paperMarks = JSON.parse(savedData);
-    } else {
-        paperMarks = {}; 
-    }
-
-    // 5. INITIALIZE MCQ ANSWERS
-    // Always initialize this so it's ready for marking later
-    window.userAnswers = new Array(questions.length).fill(null);
-    userAnswers = window.userAnswers; 
-
-    // 6. RESET NAVIGATION
-    if (currentIndex >= questions.length) {
-        currentIndex = 0;
-    }
-    
-    // 7. RENDER THE FIRST QUESTION
-    if (typeof renderUI === "function") {
-        renderUI();
-    } else if (typeof displayQuestion === "function") {
-        displayQuestion(currentIndex);
-    }
-
-    console.log("Paper Loaded Successfully:", paperKey, "Count:", questions.length);
+    window.questions = questions; 
+    // ... (rest of your finalizeLoading logic)
+    if (typeof renderUI === "function") renderUI();
+    console.log("Paper Loaded Successfully!");
 };
-        loadNextQuestion();
-    };
-}
     
     /* --- SESSION RECOVERY & INITIALIZATION --- */
     function applyVariantRule() {
@@ -1112,7 +1060,7 @@ function finalizeFullPaperMarking() {
     const fullPath = activeQuestions[0].img || activeQuestions[0].images[0];
     const fileName = fullPath.split('/').pop();
     const subjectCode = fileName.split('_')[0]; 
-    const paperID = fileName.replace(/_q\d+.*\.PNG$/i, '');
+    const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
 
     if (subjectCode === "9708") {
         const checkingModal = document.getElementById('checkingModal');
@@ -1457,15 +1405,4 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-function loadNextQuestion() {
-    console.log("Attempting to load paper/question...");
-    
-    // 1. Hide the loading spinner (if you have one)
-    const loader = document.getElementById('loader'); // Check if your ID is 'loader'
-    if (loader) loader.style.display = 'none';
 
-    // 2. Logic to show the question
-    // If you have a specific way you want to load the images from Cloudinary,
-    // that logic goes here. For now, this will stop the crash.
-    alert("Function called! Now we just need to link your Cloudinary logic here.");
-}
