@@ -353,20 +353,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (isEconMCQ) {
       if (mcqWrapper) mcqWrapper.style.display = "block";
       if (marksEntry) marksEntry.style.display = "none";
-      if (mcqButtons) {
-        mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => `
-                <button onclick="saveMCQAnswer('${letter}')" 
-                    style="
-                        width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981;
-                        font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
-                        background: ${userAnswers[currentIndex] === letter ? '#10b981' : 'transparent'};
-                        color: ${userAnswers[currentIndex] === letter ? '#fff' : '#10b981'};
-                        box-shadow: ${userAnswers[currentIndex] === letter ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'};
-                    ">
-                    ${letter}
-                </button>
-            `).join('');
-      }
+   if (mcqButtons) {
+    mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => {
+        // Look specifically at window.userAnswers
+        const isSelected = window.userAnswers && window.userAnswers[currentIndex] === letter;
+        
+        return `
+            <button onclick="saveMCQAnswer('${letter}')" 
+                style="
+                    width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981;
+                    font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
+                    background: ${isSelected ? '#10b981' : 'transparent'};
+                    color: ${isSelected ? '#fff' : '#10b981'};
+                    box-shadow: ${isSelected ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'};
+                ">
+                ${letter}
+            </button>
+        `;
+    }).join('');
+}
       if (msBtn) {
         msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
         msBtn.style.background = "";
