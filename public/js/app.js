@@ -423,34 +423,40 @@ const scoreInput = document.getElementById('currentQScore');
         updateQuestionNote(); // Show the note if it exists for this specific question
     }
 
-    function renderUI() {
-        renderQuestion();
-        if (questionList) {
-            questionList.innerHTML = "";
-            questions.forEach((q, index) => {
-                const btn = document.createElement("button");
-                btn.textContent = q.number;
-                btn.className = index === currentIndex ? "question-btn active" : "question-btn";
-                btn.onclick = () => { currentIndex = index; renderUI(); };
-                questionList.appendChild(btn);
-            });
-        }
-        if (prevBtn) prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
-        if (nextBtn) nextBtn.style.visibility = (currentIndex === questions.length - 1 || questions.length === 0) ? "hidden" : "visible";
+ function renderUI() {
+    renderQuestion();
 
+    // 1. Render Question Navigation List
+    if (questionList) {
+        questionList.innerHTML = "";
+        questions.forEach((q, index) => {
+            const btn = document.createElement("button");
+            btn.textContent = q.number;
+            btn.className = index === currentIndex ? "question-btn active" : "question-btn";
+            btn.onclick = () => { currentIndex = index; renderUI(); };
+            questionList.appendChild(btn);
+        });
+    }
 
+    // 2. Navigation Button Visibility
+    if (prevBtn) prevBtn.style.visibility = (currentIndex === 0) ? "hidden" : "visible";
+    if (nextBtn) nextBtn.style.visibility = (currentIndex === questions.length - 1 || questions.length === 0) ? "hidden" : "visible";
 
-
-const mcqWrapper = document.getElementById('mcq-options-wrapper');
+    // 3. MCQ vs Marks Entry Logic
+    const mcqWrapper = document.getElementById('mcq-options-wrapper');
     const mcqButtons = document.getElementById('mcq-buttons');
     const marksEntry = document.getElementById('headerMarkEntry');
-    
+    const msBtn = document.getElementById('ms-btn'); // Assuming your Mark Scheme button has this ID
+
+    // Subject/Paper Check
     const isEconMCQ = subjectSelect.value === "9708" && paperSelect.value.includes("3");
 
     if (isEconMCQ) {
+        // Show MCQ Options, Hide Marks Entry
         if (mcqWrapper) mcqWrapper.style.display = "block";
         if (marksEntry) marksEntry.style.display = "none";
 
+        // Generate A, B, C, D Buttons
         if (mcqButtons) {
             mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => `
                 <button onclick="saveMCQAnswer('${letter}')" 
@@ -465,12 +471,51 @@ const mcqWrapper = document.getElementById('mcq-options-wrapper');
                 </button>
             `).join('');
         }
+
+        // --- ECONOMICS "SHOW ANSWER" BUTTON LOGIC ---
+        if (msBtn) {
+            msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
+            msBtn.onclick = () => {
+                const activeQuestions = window.questions || questions;
+                const currentQ = activeQuestions[currentIndex];
+                const fullPath = currentQ.img || currentQ.images[0];
+                const fileName = fullPath.split('/').pop();
+                const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
+
+                const HARDCODED_DATABASE = {
+                    "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC",
+                    "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB", 
+                };
+
+                const correctKeyString = HARDCODED_DATABASE[paperID];
+                if (correctKeyString) {
+                    const correctAns = correctKeyString[currentIndex];
+                    alert(`The correct answer for Question ${currentQ.number} is: ${correctAns}`);
+                } else {
+                    alert("Answer key not found for this Econ paper.");
+                }
+            };
+        }
+
     } else {
+        // Show Marks Entry, Hide MCQ Options
         if (mcqWrapper) mcqWrapper.style.display = "none";
         if (marksEntry) marksEntry.style.display = "flex";
+
+        // Restore Default Mark Scheme Button Behavior
+        if (msBtn) {
+            msBtn.innerHTML = `<i class="fas fa-file-invoice"></i> Mark Scheme`;
+            msBtn.onclick = () => {
+                const activeQuestions = window.questions || questions;
+                if (activeQuestions[currentIndex]) {
+                    showMarkSchemeModal(activeQuestions[currentIndex].markImages);
+                }
+            };
+        }
     }
-        saveState(); 
-    }
+
+    saveState(); 
+}
 
     window.saveMCQAnswer = (letter) => {
     userAnswers[currentIndex] = letter;
