@@ -582,8 +582,9 @@ const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q
             const char = partLetters[partIndex];
             const fileName = `${subjectSelect.value}_${yCode}_qp_${pCode}_q${qNum}${char}.png`;
             const msName = `${subjectSelect.value}_${yCode}_ms_${pCode}_q${qNum}${char}.png`;
-            console.log("Checking for image at:", qPath); // ADD THIS LINE
+         
             const qPath = `${BASE_URL}${fileName}`;
+               console.log("Checking for image at:", qPath); // ADD THIS LINE
             const mPath = `${BASE_URL}${msName}`;
 
             const img = new Image();
