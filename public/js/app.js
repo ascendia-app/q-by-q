@@ -265,51 +265,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentIndex: currentIndex
     }));
   }
-  function renderQuestion() {
-    if (!questions[currentIndex]) return;
-    const q = questions[currentIndex];
-    const questionNumberEl = document.getElementById("question-number");
-    if (questionNumberEl) questionNumberEl.textContent = `Question ${q.number}`;
-    const scoreInput = document.getElementById('currentQScore');
-    const totalInput = document.getElementById('currentQTotal');
-    const markContainer = document.getElementById('headerMarkEntry');
-    if (markContainer) markContainer.style.display = 'flex';
-    if (scoreInput && totalInput) {
-      const saved = paperMarks[q.number];
-      if (saved) {
-        scoreInput.value = saved.got === 0 || saved.got === "" ? "" : saved.got;
-        totalInput.value = saved.max === 0 || saved.max === "" ? "" : saved.max;
-        const scoreColor = scoreInput.value === "" ? '#94a3b8' : '#1e293b';
-        const totalColor = totalInput.value === "" ? '#94a3b8' : '#64748b';
-        scoreInput.style.setProperty('color', scoreColor, 'important');
-        scoreInput.style.setProperty('-webkit-text-fill-color', scoreColor, 'important');
-        totalInput.style.setProperty('color', totalColor, 'important');
-        totalInput.style.setProperty('-webkit-text-fill-color', totalColor, 'important');
-      } else {
-        scoreInput.value = "";
-        totalInput.value = "";
-      }
-      scoreInput.oninput = function () {
-        window.updateMark(currentIndex, 'got', this);
-      };
-      totalInput.oninput = function () {
-        window.updateMark(currentIndex, 'max', this);
-      };
+ function renderQuestion() {
+  if (!questions[currentIndex]) return;
+  const q = questions[currentIndex];
+  
+  const questionNumberEl = document.getElementById("question-number");
+  if (questionNumberEl) questionNumberEl.textContent = `Question ${q.number}`;
+  
+  const scoreInput = document.getElementById('currentQScore');
+  const totalInput = document.getElementById('currentQTotal');
+  const markContainer = document.getElementById('headerMarkEntry');
+
+  // Logic for Mark Input fields
+  if (scoreInput && totalInput) {
+    const saved = paperMarks[q.number];
+    if (saved) {
+      scoreInput.value = (saved.got === 0 || saved.got === "") ? "" : saved.got;
+      totalInput.value = (saved.max === 0 || saved.max === "") ? "" : saved.max;
+      
+      const scoreColor = scoreInput.value === "" ? '#94a3b8' : '#1e293b';
+      scoreInput.style.setProperty('color', scoreColor, 'important');
+      scoreInput.style.setProperty('-webkit-text-fill-color', scoreColor, 'important');
+    } else {
+      scoreInput.value = "";
+      totalInput.value = "";
     }
-    if (markSchemeViewer && markSchemeBtn) {
-      markSchemeViewer.style.display = "none";
-      markSchemeViewer.classList.remove("open");
-      markSchemeBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
-    }
-    questionContentEl.innerHTML = "";
-    q.images.forEach(src => {
-      const img = document.createElement("img");
-      img.src = src;
-      img.className = "question-image";
-      img.loading = "lazy";
-      img.onerror = () => img.style.display = 'none';
-      questionContentEl.appendChild(img);
-    });
+
+    scoreInput.oninput = function () { window.updateMark(currentIndex, 'got', this); };
+    totalInput.oninput = function () { window.updateMark(currentIndex, 'max', this); };
+  }
+
+  // Clear and Render Question Images
+  questionContentEl.innerHTML = "";
+  q.images.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.className = "question-image";
+    img.loading = "lazy";
+    img.onerror = () => img.style.display = 'none';
+    questionContentEl.appendChild(img);
+  });
+
+  // Prepare Mark Scheme Viewer (hidden by default)
+  if (markSchemeViewer) {
     markSchemeViewer.innerHTML = "";
     q.markImages.forEach(src => {
       const img = document.createElement("img");
@@ -317,111 +315,87 @@ document.addEventListener("DOMContentLoaded", async () => {
       img.className = "markscheme-image";
       markSchemeViewer.appendChild(img);
     });
-    updateSaveButtonState();
-    updateQuestionNote();
   }
-function renderUI() {
-  renderQuestion();
 
-  // 1. Render Question Navigation List in Sidebar
+  updateSaveButtonState();
+  updateQuestionNote();
+}
+function renderUI() {
+  renderQuestion(); // Display the images and scores first
+
+  // 1. Sidebar Navigation
   if (questionList) {
     questionList.innerHTML = "";
     questions.forEach((q, index) => {
       const btn = document.createElement("button");
       btn.textContent = q.number;
       btn.className = index === currentIndex ? "question-btn active" : "question-btn";
-      btn.onclick = () => {
-        currentIndex = index;
-        renderUI();
-      };
+      btn.onclick = () => { currentIndex = index; renderUI(); };
       questionList.appendChild(btn);
     });
   }
 
-  // 2. Navigation Button Visibility
+  // 2. Button Visibility
   if (prevBtn) prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
-  if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 || questions.length === 0 ? "hidden" : "visible";
+  if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 ? "hidden" : "visible";
 
-  // 3. UI Element References
+  // 3. UI References
   const mcqWrapper = document.getElementById('mcq-options-wrapper');
   const mcqButtons = document.getElementById('mcq-buttons');
   const marksEntry = document.getElementById('headerMarkEntry');
   const msBtn = document.getElementById('markSchemeBtn');
 
-  // 4. Logic Condition for Economics MCQs (9708)
   const subCode = subjectSelect.value;
   const isEconMCQ = subCode === "9708";
 
   if (isEconMCQ) {
-    // --- MCQ MODE ---
+    // --- ECONOMICS MODE ---
     if (mcqWrapper) mcqWrapper.style.display = "block";
     if (marksEntry) marksEntry.style.display = "none";
 
-    // Generate A, B, C, D Buttons with conditional styling for selection
+    // MCQ A,B,C,D selection logic
     if (mcqButtons) {
       mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => {
-        // Check selection state using the global window.userAnswers
         const isSelected = window.userAnswers && window.userAnswers[currentIndex] === letter;
-
-        return `
-            <button onclick="saveMCQAnswer('${letter}')" 
-                style="
-                    width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981;
-                    font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
-                    background: ${isSelected ? '#10b981' : 'transparent'};
-                    color: ${isSelected ? '#fff' : '#10b981'};
-                    box-shadow: ${isSelected ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'};
-                ">
-                ${letter}
-            </button>
-        `;
+        return `<button onclick="saveMCQAnswer('${letter}')" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981; font-weight: 800; cursor: pointer; background: ${isSelected ? '#10b981' : 'transparent'}; color: ${isSelected ? '#fff' : '#10b981'};">${letter}</button>`;
       }).join('');
     }
 
-    // --- AESTHETIC "IN-BUTTON" SHOW ANSWER ---
+    // Economics "Show Answer" Logic
     if (msBtn) {
-      // Reset button to default state whenever we switch questions
       msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
       msBtn.style.background = "";
-      
-      msBtn.onclick = e => {
-        if (e) e.preventDefault();
-        
+      msBtn.onclick = () => {
         const activeQuestions = window.questions || questions;
         const currentQ = activeQuestions[currentIndex];
-        const fullPath = currentQ.img || currentQ.images[0];
-        const fileName = fullPath.split('/').pop();
+        const fileName = (currentQ.img || currentQ.images[0]).split('/').pop();
         const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
-
-        const HARDCODED_DATABASE = {
-          "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC",
-          "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB"
-        };
-
-        const correctKeyString = HARDCODED_DATABASE[paperID];
-        if (correctKeyString) {
-          const correctAns = correctKeyString[currentIndex];
-          // Transform the button itself into the answer display
-          msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct Answer: ${correctAns}`;
+        const KEYS = { "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC", "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB" };
+        const key = KEYS[paperID];
+        if (key) {
+          msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct: ${key[currentIndex]}`;
           msBtn.style.background = "#059669";
-          msBtn.style.transition = "background 0.3s ease";
-        } else {
-          msBtn.innerHTML = `<i class="fas fa-times-circle"></i> Key Missing`;
         }
       };
     }
   } else {
-    // --- STANDARD MODE (Math/Psych) ---
+    // --- MATH / PSYCH MODE ---
     if (mcqWrapper) mcqWrapper.style.display = "none";
     if (marksEntry) marksEntry.style.display = "flex";
-    
+
     if (msBtn) {
-      msBtn.style.background = "";
+      msBtn.style.background = ""; // Clear Econ green
       msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
+      
       msBtn.onclick = () => {
         const activeQuestions = window.questions || questions;
-        if (activeQuestions[currentIndex] && typeof showMarkSchemeModal === "function") {
-          showMarkSchemeModal(activeQuestions[currentIndex].markImages);
+        const currentQ = activeQuestions[currentIndex];
+        
+        // Use your modal function
+        if (currentQ && currentQ.markImages && typeof showMarkSchemeModal === "function") {
+          showMarkSchemeModal(currentQ.markImages);
+        } else {
+          alert("Mark scheme images not found!");
         }
       };
     }
