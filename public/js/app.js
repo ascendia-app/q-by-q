@@ -265,6 +265,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentIndex: currentIndex
     }));
   }
+function getCloudinaryPath(fileName) {
+    if (!fileName) return "";
+    if (fileName.includes('http')) return fileName.trim(); // Already a full URL
+
+    const parts = fileName.split('_'); 
+    // parts[0]=9709, parts[1]=s25, parts[2]=qp, parts[3]=32
+    const subject = parts[0];
+    const series = parts[1];
+    const type = parts[2];
+    const version = parts[3];
+
+    const base = "qbyq_images";
+    
+    // This builds: https://res.cloudinary.com/daiieadws/image/upload/qbyq_images/9709/s25/qp/32/9709_s25_qp_32_q1a
+    return `https://res.cloudinary.com/daiieadws/image/upload/${base}/${subject}/${series}/${type}/${version}/${fileName.trim()}`;
+}
 function renderQuestion() {
   if (!questions[currentIndex]) return;
   const q = questions[currentIndex];
@@ -293,72 +309,72 @@ function renderQuestion() {
     totalInput.oninput = function () { window.updateMark(currentIndex, 'max', this); };
   }
 
-  // --- Question Images ---
+  // --- Question Images (Folder Routed) ---
   questionContentEl.innerHTML = "";
-  q.images.forEach(src => {
+  q.images.forEach(imgRef => {
     const img = document.createElement("img");
-    img.src = src;
+    // Use helper to find folder path
+    img.src = getCloudinaryPath(imgRef);
     img.className = "question-image";
     img.loading = "lazy";
-    img.onerror = () => img.style.display = 'none';
+    img.onerror = () => {
+        // Fallback: Try root if folder path fails
+        if (img.src.includes('qbyq_images')) {
+            img.src = `https://res.cloudinary.com/daiieadws/image/upload/${imgRef}`;
+        } else {
+            img.style.display = 'none';
+        }
+    };
     questionContentEl.appendChild(img);
   });
 
-  // --- Mark Scheme Viewer (Reset to Hidden) ---
-  // --- Mark Scheme Viewer (Reset to Hidden) ---
-if (markSchemeViewer) {
+  // --- Mark Scheme Viewer (Folder Routed & Reset to Hidden) ---
+  if (markSchemeViewer) {
     markSchemeViewer.innerHTML = "";
-    markSchemeViewer.style.display = "none"; // Hide by default
+    markSchemeViewer.style.display = "none"; 
 
-    // 1. Ensure we have an array (handles string or array)
     const rawMS = q.markImages || q.msImages || q.mark_scheme || [];
     const msImages = Array.isArray(rawMS) ? rawMS : [rawMS];
 
     if (msImages.length > 0) {
-      msImages.forEach(src => {
-        if (!src) return;
+      msImages.forEach(msRef => {
+        if (!msRef) return;
 
         const img = document.createElement("img");
-        // Remove whitespace/newlines that often break URLs
-        const cleanSrc = src.trim().replace(/[\n\r]/g, ""); 
-        
-        img.src = cleanSrc;
+        img.src = getCloudinaryPath(msRef);
         img.className = "markscheme-image";
         img.style.width = "100%";
         img.style.display = "block";
         img.style.marginBottom = "15px";
 
-        // 2. THE FIX: Retry without extension if it fails
         img.onerror = () => {
-          console.warn("Initial load failed, retrying without extension:", cleanSrc);
+          console.warn("Folder path failed, trying fallback for:", msRef);
           
-          // If the URL ends in .png, strip it and try again
-          if (cleanSrc.toLowerCase().endsWith('.png')) {
-            const noExt = cleanSrc.substring(0, cleanSrc.lastIndexOf('.'));
-            img.src = noExt;
-            
-            // If it still fails, show a placeholder so the UI doesn't look broken
-            img.onerror = () => {
-              img.src = "https://placehold.co/600x200?text=Mark+Scheme+Image+Missing";
-              img.style.border = "1px dashed #ccc";
-            };
+          // Fallback 1: Try without the folder structure
+          const rootUrl = `https://res.cloudinary.com/daiieadws/image/upload/${msRef}`;
+          
+          // Fallback 2: Try without .png extension (handling your Public ID issue)
+          if (img.src !== rootUrl) {
+              img.src = rootUrl;
+          } else if (msRef.toLowerCase().endsWith('.png')) {
+              img.src = rootUrl.replace('.png', '');
+          } else {
+              img.src = "https://placehold.co/600x200?text=Mark+Scheme+Not+Found+in+Folder";
           }
         };
 
         markSchemeViewer.appendChild(img);
       });
-    } else {
-      console.warn("No markscheme found for question:", q.number);
     }
   }
 
   updateSaveButtonState();
   updateQuestionNote();
 }
+
 function renderUI() {
   renderQuestion(); 
 
-  // 1. Sidebar Navigation
   if (questionList) {
     questionList.innerHTML = "";
     questions.forEach((q, index) => {
@@ -370,11 +386,9 @@ function renderUI() {
     });
   }
 
-  // 2. Nav Buttons
   if (prevBtn) prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
-  if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 ? "hidden" : "visible";
+  if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 || questions.length === 0 ? "hidden" : "visible";
 
-  // 3. UI References
   const mcqWrapper = document.getElementById('mcq-options-wrapper');
   const mcqButtons = document.getElementById('mcq-buttons');
   const marksEntry = document.getElementById('headerMarkEntry');
@@ -384,7 +398,6 @@ function renderUI() {
   const isEconMCQ = subCode === "9708";
 
   if (isEconMCQ) {
-    // --- ECONOMICS MODE ---
     if (mcqWrapper) mcqWrapper.style.display = "block";
     if (marksEntry) marksEntry.style.display = "none";
 
@@ -414,7 +427,6 @@ function renderUI() {
       };
     }
   } else {
-    // --- MATH / PSYCH MODE ---
     if (mcqWrapper) mcqWrapper.style.display = "none";
     if (marksEntry) marksEntry.style.display = "flex";
 
@@ -423,13 +435,11 @@ function renderUI() {
       msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
       
       msBtn.onclick = () => {
-        // Toggle Logic
         const isHidden = markSchemeViewer.style.display === "none";
-        
         if (isHidden) {
           markSchemeViewer.style.display = "block";
           msBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Mark Scheme`;
-          msBtn.style.background = "#64748b"; // Darker color to show it's active
+          msBtn.style.background = "#64748b"; 
         } else {
           markSchemeViewer.style.display = "none";
           msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
@@ -440,7 +450,6 @@ function renderUI() {
   }
   saveState();
 }
-
 /**
  * Global function to save MCQ choices
  */
