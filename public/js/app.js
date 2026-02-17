@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentIndex: currentIndex
     }));
   }
- function renderQuestion() {
+function renderQuestion() {
   if (!questions[currentIndex]) return;
   const q = questions[currentIndex];
   
@@ -276,13 +276,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totalInput = document.getElementById('currentQTotal');
   const markContainer = document.getElementById('headerMarkEntry');
 
-  // Logic for Mark Input fields
+  // --- Mark Entry Logic ---
   if (scoreInput && totalInput) {
     const saved = paperMarks[q.number];
     if (saved) {
       scoreInput.value = (saved.got === 0 || saved.got === "") ? "" : saved.got;
       totalInput.value = (saved.max === 0 || saved.max === "") ? "" : saved.max;
-      
       const scoreColor = scoreInput.value === "" ? '#94a3b8' : '#1e293b';
       scoreInput.style.setProperty('color', scoreColor, 'important');
       scoreInput.style.setProperty('-webkit-text-fill-color', scoreColor, 'important');
@@ -290,12 +289,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       scoreInput.value = "";
       totalInput.value = "";
     }
-
     scoreInput.oninput = function () { window.updateMark(currentIndex, 'got', this); };
     totalInput.oninput = function () { window.updateMark(currentIndex, 'max', this); };
   }
 
-  // Clear and Render Question Images
+  // --- Question Images ---
   questionContentEl.innerHTML = "";
   q.images.forEach(src => {
     const img = document.createElement("img");
@@ -306,22 +304,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     questionContentEl.appendChild(img);
   });
 
-  // Prepare Mark Scheme Viewer (hidden by default)
-  if (markSchemeViewer) {
+  // --- Mark Scheme Viewer (Reset to Hidden) ---
+  // --- Mark Scheme Viewer (Reset to Hidden) ---
+if (markSchemeViewer) {
     markSchemeViewer.innerHTML = "";
-    q.markImages.forEach(src => {
-      const img = document.createElement("img");
-      img.src = src;
-      img.className = "markscheme-image";
-      markSchemeViewer.appendChild(img);
-    });
+    markSchemeViewer.style.display = "none"; // Hide by default
+
+    // 1. Ensure we have an array (handles string or array)
+    const rawMS = q.markImages || q.msImages || q.mark_scheme || [];
+    const msImages = Array.isArray(rawMS) ? rawMS : [rawMS];
+
+    if (msImages.length > 0) {
+      msImages.forEach(src => {
+        if (!src) return;
+
+        const img = document.createElement("img");
+        // Remove whitespace/newlines that often break URLs
+        const cleanSrc = src.trim().replace(/[\n\r]/g, ""); 
+        
+        img.src = cleanSrc;
+        img.className = "markscheme-image";
+        img.style.width = "100%";
+        img.style.display = "block";
+        img.style.marginBottom = "15px";
+
+        // 2. THE FIX: Retry without extension if it fails
+        img.onerror = () => {
+          console.warn("Initial load failed, retrying without extension:", cleanSrc);
+          
+          // If the URL ends in .png, strip it and try again
+          if (cleanSrc.toLowerCase().endsWith('.png')) {
+            const noExt = cleanSrc.substring(0, cleanSrc.lastIndexOf('.'));
+            img.src = noExt;
+            
+            // If it still fails, show a placeholder so the UI doesn't look broken
+            img.onerror = () => {
+              img.src = "https://placehold.co/600x200?text=Mark+Scheme+Image+Missing";
+              img.style.border = "1px dashed #ccc";
+            };
+          }
+        };
+
+        markSchemeViewer.appendChild(img);
+      });
+    } else {
+      console.warn("No markscheme found for question:", q.number);
+    }
   }
 
   updateSaveButtonState();
   updateQuestionNote();
 }
 function renderUI() {
-  renderQuestion(); // Display the images and scores first
+  renderQuestion(); 
 
   // 1. Sidebar Navigation
   if (questionList) {
@@ -335,7 +370,7 @@ function renderUI() {
     });
   }
 
-  // 2. Button Visibility
+  // 2. Nav Buttons
   if (prevBtn) prevBtn.style.visibility = currentIndex === 0 ? "hidden" : "visible";
   if (nextBtn) nextBtn.style.visibility = currentIndex === questions.length - 1 ? "hidden" : "visible";
 
@@ -353,27 +388,27 @@ function renderUI() {
     if (mcqWrapper) mcqWrapper.style.display = "block";
     if (marksEntry) marksEntry.style.display = "none";
 
-    // MCQ A,B,C,D selection logic
     if (mcqButtons) {
       mcqButtons.innerHTML = ['A', 'B', 'C', 'D'].map(letter => {
         const isSelected = window.userAnswers && window.userAnswers[currentIndex] === letter;
-        return `<button onclick="saveMCQAnswer('${letter}')" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981; font-weight: 800; cursor: pointer; background: ${isSelected ? '#10b981' : 'transparent'}; color: ${isSelected ? '#fff' : '#10b981'};">${letter}</button>`;
+        return `<button onclick="saveMCQAnswer('${letter}')" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid #10b981; font-weight: 800; cursor: pointer; transition: 0.2s; background: ${isSelected ? '#10b981' : 'transparent'}; color: ${isSelected ? '#fff' : '#10b981'}; box-shadow: ${isSelected ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'};">${letter}</button>`;
       }).join('');
     }
 
-    // Economics "Show Answer" Logic
     if (msBtn) {
       msBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Show Answer`;
       msBtn.style.background = "";
       msBtn.onclick = () => {
-        const activeQuestions = window.questions || questions;
-        const currentQ = activeQuestions[currentIndex];
+        const currentQ = questions[currentIndex];
         const fileName = (currentQ.img || currentQ.images[0]).split('/').pop();
         const paperID = fileName.replace(/_q\d+.*\.png$/i, '');
-        const KEYS = { "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC", "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB" };
-        const key = KEYS[paperID];
-        if (key) {
-          msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct: ${key[currentIndex]}`;
+        const KEYS = { 
+            "9708_m25_qp_32": "BDDBACBDABBAAACCACAAADABDBCCDC", 
+            "9708_s25_qp_31": "BCACCDCCBCBBCBBCBAACDAADBCBCDB" 
+        };
+        const keyString = KEYS[paperID];
+        if (keyString) {
+          msBtn.innerHTML = `<i class="fas fa-check-circle"></i> Correct: ${keyString[currentIndex]}`;
           msBtn.style.background = "#059669";
         }
       };
@@ -383,19 +418,22 @@ function renderUI() {
     if (mcqWrapper) mcqWrapper.style.display = "none";
     if (marksEntry) marksEntry.style.display = "flex";
 
-    if (msBtn) {
-      msBtn.style.background = ""; // Clear Econ green
+    if (msBtn && markSchemeViewer) {
+      msBtn.style.background = ""; 
       msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
       
       msBtn.onclick = () => {
-        const activeQuestions = window.questions || questions;
-        const currentQ = activeQuestions[currentIndex];
+        // Toggle Logic
+        const isHidden = markSchemeViewer.style.display === "none";
         
-        // Use your modal function
-        if (currentQ && currentQ.markImages && typeof showMarkSchemeModal === "function") {
-          showMarkSchemeModal(currentQ.markImages);
+        if (isHidden) {
+          markSchemeViewer.style.display = "block";
+          msBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Mark Scheme`;
+          msBtn.style.background = "#64748b"; // Darker color to show it's active
         } else {
-          alert("Mark scheme images not found!");
+          markSchemeViewer.style.display = "none";
+          msBtn.innerHTML = `<i class="fas fa-eye"></i> Show Mark Scheme`;
+          msBtn.style.background = "";
         }
       };
     }
