@@ -5,10 +5,6 @@ function getCloudinaryPath(fileName) {
 
     const parts = cleanName.split('_'); 
     const finalFileName = cleanName.includes('.') ? cleanName : `${cleanName}.png`;
-
-    // ADD THIS: Cloudinary transformations
-    // f_auto = automatic format (WebP/Avif)
-    // q_auto = automatic quality compression
     const transform = "f_auto,q_auto";
 
     if (parts.length < 4) {
@@ -215,68 +211,78 @@ window.openPreview = async (index) => {
     const q = savedQuestions[index];
     if (!q) return;
 
+    // Reset UI
     const displayNum = q.questionNum || q.number || (q.index !== undefined ? q.index + 1 : "??");
     modalTitle.textContent = `Review: Q${displayNum}`;
-
-    const isEcon = q.subjectVal === "9708" || (q.paperInfo && q.paperInfo.startsWith("9708"));
-
-    // UI Reset
     modalImages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
     modalMS.innerHTML = '';
+
+    // Build the same ID structure as app.js
+    const subjectCode = q.subjectVal || (q.paperInfo ? q.paperInfo.split('_')[0] : "9708");
+    const sMap = { 'febmar': 'm', 'mayjun': 's', 'octnov': 'w' };
+    const sCode = sMap[q.season] || 's';
+    const yCode = q.year ? q.year.toString().slice(-2) : '24';
+    const pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, ''); 
+    const vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
     
-    let baseFileName = "";
-    if (q.img) {
-        // Extract filename and strip extension
-        const raw = q.img.split('/').pop();
-        baseFileName = raw.replace(/[a-z]?\.(png|PNG|jpg|JPG)$/i, '');
-    } else {
-        const sMap = { 'febmar': 'm', 'mayjun': 's', 'octnov': 'w' };
-        const sCode = sMap[q.season] || 's';
-        const yCode = q.year ? q.year.toString().slice(-2) : '25';
-        const pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, ''); 
-        const vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
-        baseFileName = `${q.subjectVal}_${sCode}${yCode}_qp_${pNum}${vNum}_q${displayNum}`;
-    }
+    // Base name: 9709_m25_qp_32_q1
+    const baseFileName = `${subjectCode}_${sCode}${yCode}_qp_${pNum}${vNum}_q${displayNum}`;
 
     const subParts = ["", "a", "b", "c", "d"];
     let foundAnything = false;
 
-   // Inside your window.openPreview loop:
-for (const char of subParts) {
-    // Send only the name, let getCloudinaryPath handle the extension and path
-    const currentNameOnly = `${baseFileName}${char}`; 
-    const fullURL = getCloudinaryPath(currentNameOnly);
-    
-    console.log("Testing URL:", fullURL); // This will show you exactly why it fails or works
+    for (const char of subParts) {
+        const imgRef = `${baseFileName}${char}`;
+        
+        try {
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = getCloudinaryPath(imgRef);
+                
+                img.onload = () => {
+                    if (!foundAnything) { modalImages.innerHTML = ''; foundAnything = true; }
+                    const qImg = document.createElement('img');
+                    qImg.src = img.src;
+                    qImg.className = "preview-img";
+                    qImg.style.width = "100%";
+                    qImg.style.marginBottom = "15px";
+                    modalImages.appendChild(qImg);
 
-    try {
-        await new Promise((resolve, reject) => {
-            const testImg = new Image();
-            testImg.onload = () => {
-                if (!foundAnything) { modalImages.innerHTML = ''; foundAnything = true; }
-                const qImg = document.createElement('img');
-                qImg.src = testImg.src;
-                qImg.className = "preview-img";
-                qImg.style.width = "100%";
-                modalImages.appendChild(qImg);
-                resolve();
-            };
-            testImg.onerror = () => {
-                // Try Uppercase PNG if lowercase fails
-                if (!testImg.src.includes('.PNG')) {
-                    testImg.src = testImg.src.replace('.png', '.PNG');
-                } else {
-                    reject();
-                }
-            };
-            testImg.src = fullURL;
-        });
-    } catch (e) { /* skip */ }
-}
+                    // Load Mark Scheme if not Econ
+                    if (subjectCode !== "9708") {
+                        const msRef = imgRef.replace('_qp_', '_ms_');
+                        const msImg = new Image();
+                        msImg.src = getCloudinaryPath(msRef);
+                        msImg.onload = () => {
+                            const msDisplay = document.createElement('img');
+                            msDisplay.src = msImg.src;
+                            msDisplay.className = "preview-ms-img";
+                            msDisplay.style.width = "100%";
+                            modalMS.appendChild(msDisplay);
+                        };
+                    }
+                    resolve();
+                };
+
+                img.onerror = () => {
+                    // This is the logic from your app.js that makes it work!
+                    if (img.src.includes('qbyq_images')) {
+                        // Fallback: Try root if folder path fails
+                        img.src = `https://res.cloudinary.com/daiieadws/image/upload/${imgRef}.png`;
+                    } else if (!img.src.includes('.PNG') && img.src.includes('.png')) {
+                        // Extra Fallback for Case Sensitivity
+                        img.src = img.src.replace('.png', '.PNG');
+                    } else {
+                        reject(); 
+                    }
+                };
+            });
+        } catch (e) { /* Part not found, continue */ }
+    }
+
     if (!foundAnything) {
-        modalImages.innerHTML = `<div class="error" style="padding:20px; color:#ef4444; text-align:center;">
-            <i class="fas fa-exclamation-circle"></i><br>Image Not Found<br>
-            <small style="color: #64748b">${baseFileName}</small>
+        modalImages.innerHTML = `<div class="error" style="text-align:center; padding:20px; color:#ef4444;">
+            <i class="fas fa-exclamation-triangle"></i> Image Not Found in Folders or Root.
         </div>`;
     }
 
