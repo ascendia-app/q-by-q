@@ -1,116 +1,106 @@
 function getCloudinaryPath(fileName) {
-    if (!fileName) return "";
-    const cleanName = fileName.trim().replace(/[\n\r]/g, "");
-    if (cleanName.includes('http')) return cleanName;
-    const parts = cleanName.split('_'); 
-    // parts[0]=9709, parts[1]=s25, parts[2]=qp, parts[3]=32
-    if (parts.length < 4) return `https://res.cloudinary.com/daiieadws/image/upload/${cleanName}`;
-    const subject = parts[0];
-    const series = parts[1];
-    const type = parts[2];
-    const version = parts[3];
-    const base = "qbyq_images";
-    // Using f_auto,q_auto for faster preview loading
-    return `https://res.cloudinary.com/daiieadws/image/upload/f_auto,q_auto/${base}/${subject}/${series}/${type}/${version}/${cleanName}`;
+  if (!fileName) return "";
+  const cleanName = fileName.trim().replace(/[\n\r]/g, "");
+  if (cleanName.includes('http')) return cleanName;
+  const parts = cleanName.split('_');
+  if (parts.length < 4) return `https://res.cloudinary.com/daiieadws/image/upload/${cleanName}`;
+  const subject = parts[0];
+  const series = parts[1];
+  const type = parts[2];
+  const version = parts[3];
+  const base = "qbyq_images";
+  return `https://res.cloudinary.com/daiieadws/image/upload/f_auto,q_auto/${base}/${subject}/${series}/${type}/${version}/${cleanName}`;
 }
-/* =========================================
-   1. AUTHENTICATION GUARD
-   ========================================= */
 async function verifyAccess() {
-    let token = localStorage.getItem("token");
-    if (token) token = token.replace(/^["'](.+)["']$/, '$1');
-    const isLoggedIn = token && token !== "null" && token !== "undefined" && token.length > 20;
-    if (!isLoggedIn) {
-        window.location.href = "login.html"; 
-        return;
-    }
-    initLibrary();
+  let token = localStorage.getItem("token");
+  if (token) token = token.replace(/^["'](.+)["']$/, '$1');
+  const isLoggedIn = token && token !== "null" && token !== "undefined" && token.length > 20;
+  if (!isLoggedIn) {
+    window.location.href = "login.html";
+    return;
+  }
+  initLibrary();
 }
-/**
- * 2. MAIN UI INITIALIZATION
- */
 function getCloudinaryPath(fileName) {
-    if (!fileName) return "";
-    const cleanName = fileName.trim().replace(/[\n\r]/g, "");
-    if (cleanName.includes('http')) return cleanName;
-    const parts = cleanName.split('_'); 
-    // parts[0]=9709, parts[1]=s25, parts[2]=qp, parts[3]=32
-    if (parts.length < 4) return `https://res.cloudinary.com/daiieadws/image/upload/${cleanName}`;
-    const subject = parts[0];
-    const series = parts[1];
-    const type = parts[2];
-    const version = parts[3];
-    const base = "qbyq_images";
-    // Using f_auto,q_auto for faster preview loading
-    return `https://res.cloudinary.com/daiieadws/image/upload/f_auto,q_auto/${base}/${subject}/${series}/${type}/${version}/${cleanName}`;
+  if (!fileName) return "";
+  const cleanName = fileName.trim().replace(/[\n\r]/g, "");
+  if (cleanName.includes('http')) return cleanName;
+  const parts = cleanName.split('_');
+  if (parts.length < 4) return `https://res.cloudinary.com/daiieadws/image/upload/${cleanName}`;
+  const subject = parts[0];
+  const series = parts[1];
+  const type = parts[2];
+  const version = parts[3];
+  const base = "qbyq_images";
+  return `https://res.cloudinary.com/daiieadws/image/upload/f_auto,q_auto/${base}/${subject}/${series}/${type}/${version}/${cleanName}`;
 }
 function initLibrary() {
-    /* --- UI ELEMENTS --- */
-    const savedGrid = document.getElementById('savedGrid');
-    const emptyState = document.getElementById('emptyState');
-    const previewModal = document.getElementById('previewModal');
-    const modalImages = document.getElementById('modalImages');
-    const modalMS = document.getElementById('modalMS');
-    const modalTitle = document.getElementById('modalTitle');
-    const toggleMSBtn = document.getElementById('toggleModalMS');
-    const sidebar = document.getElementById("sidebar");
-    const toggleSidebar = document.getElementById("toggleSidebar");
-    const authBtn = document.getElementById("authTopBtn");
-    const logoutModal = document.getElementById('logoutModal');
-    const clearAllModal = document.getElementById('clearAllModal');
-    const closeBtn = document.querySelector('.close-modal');
-    /* --- DATA STATE --- */
-    let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
-    /* --- INITIAL UI SETUP --- */
-    if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
-    if (authBtn) {
-        authBtn.innerHTML = `<div class="icon-box"><i class="fas fa-sign-out-alt"></i></div><span class="nav-text">Logout</span>`;
-        authBtn.className = "auth-btn logout-state";
+  const savedGrid = document.getElementById('savedGrid');
+  const emptyState = document.getElementById('emptyState');
+  const previewModal = document.getElementById('previewModal');
+  const modalImages = document.getElementById('modalImages');
+  const modalMS = document.getElementById('modalMS');
+  const modalTitle = document.getElementById('modalTitle');
+  const toggleMSBtn = document.getElementById('toggleModalMS');
+  const sidebar = document.getElementById("sidebar");
+  const toggleSidebar = document.getElementById("toggleSidebar");
+  const authBtn = document.getElementById("authTopBtn");
+  const logoutModal = document.getElementById('logoutModal');
+  const clearAllModal = document.getElementById('clearAllModal');
+  const closeBtn = document.querySelector('.close-modal');
+  let savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
+  if (localStorage.getItem("sidebarCollapsed") === "true") sidebar?.classList.add("collapsed");
+  if (authBtn) {
+    authBtn.innerHTML = `<div class="icon-box"><i class="fas fa-sign-out-alt"></i></div><span class="nav-text">Logout</span>`;
+    authBtn.className = "auth-btn logout-state";
+  }
+  function checkEmpty() {
+    if (savedQuestions.length === 0) {
+      if (emptyState) emptyState.style.display = 'block';
+      if (savedGrid) savedGrid.style.display = 'none';
+    } else {
+      if (emptyState) emptyState.style.display = 'none';
+      if (savedGrid) {
+        savedGrid.style.display = 'grid';
+        renderSavedQuestions();
+      }
     }
-    /* --- CORE FUNCTIONS --- */
-    function checkEmpty() {
-        if (savedQuestions.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            if (savedGrid) savedGrid.style.display = 'none';
-        } else {
-            if (emptyState) emptyState.style.display = 'none';
-            if (savedGrid) {
-                savedGrid.style.display = 'grid';
-                renderSavedQuestions();
-            }
-        }
-    }
-function renderSavedQuestions() {
+  }
+  function renderSavedQuestions() {
     if (!savedGrid) return;
-    // Always get the freshest data from localStorage
     const savedQuestions = JSON.parse(localStorage.getItem('savedQuestions')) || [];
     savedGrid.innerHTML = '';
     if (savedQuestions.length === 0) {
-        checkEmpty(); // Show empty state if everything is deleted
-        return;
+      checkEmpty();
+      return;
     }
     savedQuestions.forEach((q, index) => {
-        // 1. Identify Subject
-        const subjectCode = q.subjectVal || (q.paperInfo ? q.paperInfo.split('_')[0] : "9708");
-        // 2. Format Metadata (Standardized Format: 9709_s25_qp_32)
-        const sMap = { 'febmar': 'm', 'mayjun': 's', 'octnov': 'w' };
-        const sCode = sMap[q.season] || 's';
-        const yCode = q.year ? q.year.toString().slice(-2) : '25';
-        const pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, ''); 
-        const vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
-        const standardizedMeta = `${subjectCode}_${sCode}${yCode}_qp_${pNum}${vNum}`;
-        // 3. Subject Badge Logic
-        let subjectLabel = "ECONOMICS 9708";
-        let badgeColor = "#10b981"; 
-        if (subjectCode === "9709") { subjectLabel = "MATH 9709"; badgeColor = "#0ea5e9"; }
-        else if (subjectCode === "9990") { subjectLabel = "PSYCH 9990"; badgeColor = "#8b5cf6"; }
-        // 4. UI Elements
-        const isErrorNote = q.note && q.note.toLowerCase().includes("wrong");
-        const noteClass = isErrorNote ? "note-tag error-note" : "note-tag manual-note";
-        const displayNum = q.questionNum || q.number || (q.index !== undefined ? q.index + 1 : "?");
-        const card = document.createElement('div');
-        card.className = 'saved-card';
-        card.innerHTML = `
+      const subjectCode = q.subjectVal || (q.paperInfo ? q.paperInfo.split('_')[0] : "9708");
+      const sMap = {
+        'febmar': 'm',
+        'mayjun': 's',
+        'octnov': 'w'
+      };
+      const sCode = sMap[q.season] || 's';
+      const yCode = q.year ? q.year.toString().slice(-2) : '25';
+      const pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, '');
+      const vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
+      const standardizedMeta = `${subjectCode}_${sCode}${yCode}_qp_${pNum}${vNum}`;
+      let subjectLabel = "ECONOMICS 9708";
+      let badgeColor = "#10b981";
+      if (subjectCode === "9709") {
+        subjectLabel = "MATH 9709";
+        badgeColor = "#0ea5e9";
+      } else if (subjectCode === "9990") {
+        subjectLabel = "PSYCH 9990";
+        badgeColor = "#8b5cf6";
+      }
+      const isErrorNote = q.note && q.note.toLowerCase().includes("wrong");
+      const noteClass = isErrorNote ? "note-tag error-note" : "note-tag manual-note";
+      const displayNum = q.questionNum || q.number || (q.index !== undefined ? q.index + 1 : "?");
+      const card = document.createElement('div');
+      card.className = 'saved-card';
+      card.innerHTML = `
             ${q.note ? `<div class="${noteClass}" title="${q.note}"><i class="fas fa-sticky-note"></i> ${q.note}</div>` : ''}
             <div class="card-main-content">
                 <button class="btn-remove" onclick="removeSaved(${index})">
@@ -149,243 +139,228 @@ function renderSavedQuestions() {
                 </div>
             </div>
         `;
-        savedGrid.appendChild(card);
+      savedGrid.appendChild(card);
     });
-}
-/**
- * 5. THE TRASH FIX
- * Add this function OUTSIDE of initLibrary so the HTML can find it
- */
-window.removeSaved = function(index) {
-    if (!confirm("Are you sure you want to remove this question?")) return;
+  }
+  window.removeSaved = function (index) {
+    return;
     let saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
     saved.splice(index, 1);
     localStorage.setItem('savedQuestions', JSON.stringify(saved));
-    // Refresh the UI
     renderSavedQuestions();
-    // Check if we need to show the empty state
     if (typeof checkEmpty === "function") checkEmpty();
-};
-/* =========================================
-   PRACTICE REDIRECTION LOGIC
-   ========================================= */
-window.practiceQuestion = (lookupKey) => {
+  };
+  window.practiceQuestion = lookupKey => {
     console.log("Practice clicked for Key/ID:", lookupKey);
     const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
-    // 1. Find the question by ID, Timestamp, or Index
     let q = saved.find(item => item.id == lookupKey || item.timestamp == lookupKey);
-    if (!q && saved[lookupKey]) q = saved[lookupKey]; // Index fallback
+    if (!q && saved[lookupKey]) q = saved[lookupKey];
     if (!q) {
-        console.error("Question not found in localStorage for:", lookupKey);
-        return;
+      console.error("Question not found in localStorage for:", lookupKey);
+      return;
     }
-    // 2. Set default values
     let subject = q.subjectVal || "9708";
     let year = q.year || "2025";
     let series = q.season || "mayjun";
     let paper = q.paper || "p1";
     let variant = q.variant || "1";
-    let targetIndex = q.questionNum ? (parseInt(q.questionNum) - 1) : 0;
-    // 3. Decode Economics Auto-Saved Data (e.g., "9708_s24_qp_12")
+    let targetIndex = q.questionNum ? parseInt(q.questionNum) - 1 : 0;
     if (q.paperInfo && typeof q.paperInfo === 'string') {
-        try {
-            const parts = q.paperInfo.split('_'); 
-            if (parts.length >= 4) {
-                subject = parts[0]; 
-                // Decode Season/Year
-                const sy = parts[1]; // e.g., "s24"
-                const sMap = { 'm': 'febmar', 's': 'mayjun', 'w': 'octnov' };
-                series = sMap[sy.charAt(0)] || "mayjun";
-                year = "20" + sy.substring(1);
-                // Decode Paper/Variant
-                const pv = parts[3]; // e.g., "12"
-                paper = "p" + pv.charAt(0);
-                variant = pv.charAt(1);
-            }
-        } catch (err) {
-            console.error("Error decoding paperInfo:", err);
+      try {
+        const parts = q.paperInfo.split('_');
+        if (parts.length >= 4) {
+          subject = parts[0];
+          const sy = parts[1];
+          const sMap = {
+            'm': 'febmar',
+            's': 'mayjun',
+            'w': 'octnov'
+          };
+          series = sMap[sy.charAt(0)] || "mayjun";
+          year = "20" + sy.substring(1);
+          const pv = parts[3];
+          paper = "p" + pv.charAt(0);
+          variant = pv.charAt(1);
         }
+      } catch (err) {
+        console.error("Error decoding paperInfo:", err);
+      }
     }
-    // 4. Final Sanitization (Ensuring 'p' for Econ)
     if (subject === "9708" && paper && !paper.toString().startsWith('p')) {
-        paper = "p" + paper;
+      paper = "p" + paper;
     }
-    // 5. Build Params USING THE DECODED VARIABLES (Not 'q.property')
     const params = new URLSearchParams({
-        subject: subject,
-        paper: paper,
-        year: year,
-        series: series,
-        variant: variant,
-        q: targetIndex
+      subject: subject,
+      paper: paper,
+      year: year,
+      series: series,
+      variant: variant,
+      q: targetIndex
     });
     const finalUrl = `index.html?${params.toString()}`;
     console.log("REDIRECTING TO:", finalUrl);
     window.location.href = finalUrl;
-};
-window.jumpToPractice = (index) => {
+  };
+  window.jumpToPractice = index => {
     const saved = JSON.parse(localStorage.getItem('savedQuestions')) || [];
     const q = saved[index];
     if (q) {
-        // Send the most unique identifier available
-        const lookupKey = q.id || q.timestamp || index;
-        window.practiceQuestion(lookupKey);
+      const lookupKey = q.id || q.timestamp || index;
+      window.practiceQuestion(lookupKey);
     } else {
-        console.error("No question found at index:", index);
+      console.error("No question found at index:", index);
     }
-};
-window.openPreview = async (index) => {
+  };
+  window.openPreview = async index => {
     const q = savedQuestions[index];
     if (!q) return;
     const displayNum = q.questionNum || q.number || (q.index !== undefined ? q.index + 1 : "??");
     modalTitle.textContent = `Review: Q${displayNum}`;
-    const isEcon = q.subjectVal === "9708" || (q.paperInfo && q.paperInfo.startsWith("9708"));
+    const isEcon = q.subjectVal === "9708" || q.paperInfo && q.paperInfo.startsWith("9708");
     const modalNoteContainer = document.getElementById('modalNote');
     if (modalNoteContainer) {
-        modalNoteContainer.style.display = q.note ? 'block' : 'none';
-        if (q.note) {
-            modalNoteContainer.innerHTML = `
+      modalNoteContainer.style.display = q.note ? 'block' : 'none';
+      if (q.note) {
+        modalNoteContainer.innerHTML = `
                 <div style="background: #fdf2f2; border-left: 5px solid #ef4444; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
                     <small style="color:#b91c1c; font-weight:bold; display:block; margin-bottom:4px; text-transform: uppercase;">Note</small>
                     <p style="margin:0; color:#1e293b; font-size:0.95rem;">${q.note}</p>
                 </div>`;
-        }
+      }
     }
     modalImages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
     modalMS.innerHTML = '';
-    const msToggleContainer = document.querySelector('.ms-toggle-container'); 
+    const msToggleContainer = document.querySelector('.ms-toggle-container');
     if (isEcon) {
-        modalMS.style.display = 'none';
-        if (msToggleContainer) msToggleContainer.style.display = 'none';
+      modalMS.style.display = 'none';
+      if (msToggleContainer) msToggleContainer.style.display = 'none';
     } else {
-        if (msToggleContainer) msToggleContainer.style.display = 'block';
+      if (msToggleContainer) msToggleContainer.style.display = 'block';
     }
-    // --- UPDATED IMAGE LOADING LOGIC ---
     let baseFileName = "";
     if (q.img) {
-        // Remove existing extension and 'a/b/c' suffix to re-build correctly
-        baseFileName = q.img.split('/').pop().replace(/[a-z]?\.(png|PNG|jpg|JPG)$/i, '');
+      baseFileName = q.img.split('/').pop().replace(/[a-z]?\.(png|PNG|jpg|JPG)$/i, '');
     } else {
-        const sMap = { 'febmar': 'm', 'mayjun': 's', 'octnov': 'w' };
-        const sCode = sMap[q.season] || 'm';
-        const yCode = q.year ? q.year.toString().slice(-2) : '25';
-        let pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, ''); 
-        let vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
-        baseFileName = `${q.subjectVal}_${sCode}${yCode}_qp_${pNum}${vNum}_q${displayNum}`;
+      const sMap = {
+        'febmar': 'm',
+        'mayjun': 's',
+        'octnov': 'w'
+      };
+      const sCode = sMap[q.season] || 'm';
+      const yCode = q.year ? q.year.toString().slice(-2) : '25';
+      let pNum = (q.paper || '1').toString().replace(/[a-zA-Z]/g, '');
+      let vNum = q.variant ? q.variant.toString().replace('v', '') : '1';
+      baseFileName = `${q.subjectVal}_${sCode}${yCode}_qp_${pNum}${vNum}_q${displayNum}`;
     }
     const subParts = ["", "a", "b", "c", "d"];
     let foundAnything = false;
     for (const char of subParts) {
-       img.onerror = () => {
-    // If .png failed, try .PNG before giving up
-    if (img.src.includes('.png')) {
-        img.src = img.src.replace('.png', '.PNG');
-    } else {
-        reject();
-    }
-};
-        const fullURL = getCloudinaryPath(currentFileName);
-        try {
-            await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    if (!foundAnything) { modalImages.innerHTML = ''; foundAnything = true; }
-                    const qImg = document.createElement('img');
-                    qImg.src = img.src;
-                    qImg.className = "preview-img";
-                    qImg.style.width = "100%";
-                    qImg.style.marginBottom = "10px";
-                    modalImages.appendChild(qImg);
-                    // Load Mark Scheme if not Econ
-                    if (!isEcon) {
-                        const msFileName = currentFileName.replace('_qp_', '_ms_');
-                        const msURL = getCloudinaryPath(msFileName);
-                        const mImg = new Image();
-                        mImg.onload = () => {
-                            const msDisplay = document.createElement('img');
-                            msDisplay.src = mImg.src;
-                            msDisplay.className = "preview-ms-img";
-                            msDisplay.style.width = "100%";
-                            msDisplay.style.marginBottom = "10px";
-                            modalMS.appendChild(msDisplay);
-                        };
-                        mImg.src = msURL;
-                    }
-                    resolve();
-                };
-                img.onerror = reject;
-                img.src = fullURL;
-            });
-        } catch (e) { /* Part not found, skip to next */ }
+      img.onerror = () => {
+        if (img.src.includes('.png')) {
+          img.src = img.src.replace('.png', '.PNG');
+        } else {
+          reject();
+        }
+      };
+      const fullURL = getCloudinaryPath(currentFileName);
+      try {
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            if (!foundAnything) {
+              modalImages.innerHTML = '';
+              foundAnything = true;
+            }
+            const qImg = document.createElement('img');
+            qImg.src = img.src;
+            qImg.className = "preview-img";
+            qImg.style.width = "100%";
+            qImg.style.marginBottom = "10px";
+            modalImages.appendChild(qImg);
+            if (!isEcon) {
+              const msFileName = currentFileName.replace('_qp_', '_ms_');
+              const msURL = getCloudinaryPath(msFileName);
+              const mImg = new Image();
+              mImg.onload = () => {
+                const msDisplay = document.createElement('img');
+                msDisplay.src = mImg.src;
+                msDisplay.className = "preview-ms-img";
+                msDisplay.style.width = "100%";
+                msDisplay.style.marginBottom = "10px";
+                modalMS.appendChild(msDisplay);
+              };
+              mImg.src = msURL;
+            }
+            resolve();
+          };
+          img.onerror = reject;
+          img.src = fullURL;
+        });
+      } catch (e) {}
     }
     if (!foundAnything) {
-        modalImages.innerHTML = `<div class="error" style="padding:20px; color:#ef4444;">Question Image Not Found in Cloudinary Folders.</div>`;
+      modalImages.innerHTML = `<div class="error" style="padding:20px; color:#ef4444;">Question Image Not Found in Cloudinary Folders.</div>`;
     }
     previewModal.style.display = "block";
-};
-// Simplified Toggle - Place this inside initLibrary
-if (toggleMSBtn) {
-    toggleMSBtn.onclick = (e) => {
-        e.preventDefault();
-        const isHidden = modalMS.style.display === 'none';
-        modalMS.style.display = isHidden ? 'block' : 'none';
-        toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
+  };
+  if (toggleMSBtn) {
+    toggleMSBtn.onclick = e => {
+      e.preventDefault();
+      const isHidden = modalMS.style.display === 'none';
+      modalMS.style.display = isHidden ? 'block' : 'none';
+      toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
     };
-}
-    /* --- UI EVENT LISTENERS --- */
-    // Sidebar Toggle
-    if (toggleSidebar) {
-        toggleSidebar.onclick = () => {
-            sidebar.classList.toggle("collapsed");
-            localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-        };
-    }
-    // FIX: Flickering Mark Scheme Toggle
-    if (toggleMSBtn) {
-        toggleMSBtn.onclick = (e) => {
-            e.stopPropagation(); // Prevent event bubbling
-            const isHidden = modalMS.style.display === 'none';
-            modalMS.style.display = isHidden ? 'block' : 'none';
-            toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
-        };
-    }
-    // Modal Close Button
-    if (closeBtn) {
-        closeBtn.onclick = () => { previewModal.style.display = "none"; };
-    }
-    // Clear All Questions
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    if (clearAllBtn) {
-        clearAllBtn.onclick = () => { if(savedQuestions.length > 0) clearAllModal.style.display = 'flex'; };
-    }
-    document.getElementById('confirmClearBtn').onclick = () => {
-        savedQuestions = [];
-        localStorage.setItem('savedQuestions', "[]");
-        clearAllModal.style.display = 'none';
-        checkEmpty();
+  }
+  if (toggleSidebar) {
+    toggleSidebar.onclick = () => {
+      sidebar.classList.toggle("collapsed");
+      localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
     };
-    // Logout
-    if (authBtn) authBtn.onclick = () => { logoutModal.style.display = 'flex'; };
-    document.getElementById('confirmLogout').onclick = () => {
-        localStorage.removeItem("token");
-        window.location.href = "login.html";
+  }
+  if (toggleMSBtn) {
+    toggleMSBtn.onclick = e => {
+      e.stopPropagation();
+      const isHidden = modalMS.style.display === 'none';
+      modalMS.style.display = isHidden ? 'block' : 'none';
+      toggleMSBtn.textContent = isHidden ? 'Hide Mark Scheme' : 'Show Mark Scheme';
     };
-    // Click outside backdrop to close
-    window.onclick = (e) => {
-        if (e.target === previewModal) previewModal.style.display = "none";
-        if (e.target === logoutModal) logoutModal.style.display = "none";
-        if (e.target === clearAllModal) clearAllModal.style.display = "none";
+  }
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      previewModal.style.display = "none";
     };
-    // Escape Key to close everything
-    document.onkeydown = (e) => {
-        if (e.key === "Escape") {
-            previewModal.style.display = "none";
-            logoutModal.style.display = "none";
-            clearAllModal.style.display = "none";
-        }
+  }
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  if (clearAllBtn) {
+    clearAllBtn.onclick = () => {
+      if (savedQuestions.length > 0) clearAllModal.style.display = 'flex';
     };
-    // Initialize the grid
+  }
+  document.getElementById('confirmClearBtn').onclick = () => {
+    savedQuestions = [];
+    localStorage.setItem('savedQuestions', "[]");
+    clearAllModal.style.display = 'none';
     checkEmpty();
+  };
+  if (authBtn) authBtn.onclick = () => {
+    logoutModal.style.display = 'flex';
+  };
+  document.getElementById('confirmLogout').onclick = () => {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+  };
+  window.onclick = e => {
+    if (e.target === previewModal) previewModal.style.display = "none";
+    if (e.target === logoutModal) logoutModal.style.display = "none";
+    if (e.target === clearAllModal) clearAllModal.style.display = "none";
+  };
+  document.onkeydown = e => {
+    if (e.key === "Escape") {
+      previewModal.style.display = "none";
+      logoutModal.style.display = "none";
+      clearAllModal.style.display = "none";
+    }
+  };
+  checkEmpty();
 }
-// 3. START THE SEQUENCE
 document.addEventListener("DOMContentLoaded", verifyAccess);
