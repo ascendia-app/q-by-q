@@ -21,52 +21,47 @@
     --sidebar-collapsed: 80px;
 }
 
-/* 1. FIX: Ensure body allows the document to grow */
-/* 1. The Body needs to be the scrolling anchor */
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg);
     margin: 0;
     display: flex; 
-    min-height: 100vh;   /* Minimum full screen height */
-    overflow-y: auto;    /* This is the master vertical scroll */
+    min-height: 100vh;   
+    overflow-y: auto;    
     overflow-x: hidden;
     align-items: stretch; 
 }
 
-/* 2. Remove the "height: 100vh" or "overflow: hidden" from main-content */
 .main-content {
     flex: 1;
     padding: 40px;
-    margin-left: 0;      /* Ensure this doesn't conflict with sidebar */
-    min-height: 100vh;   /* Allow it to be at least screen height */
-    height: auto;        /* CRITICAL: Let it grow taller than the screen */
-    display: block;      /* Change from flex to block to allow natural document flow */
+    margin-left: 0;      
+    min-height: 100vh;   
+    height: auto;        
+    display: block;      
 }
 
-/* 3. Ensure the Container doesn't clip */
 .container {
     max-width: 1000px;
     margin: 0 auto;
     height: auto;
-    overflow: visible;   /* Do not trap scroll here */
+    overflow: visible;   
 }
 
-/* 4. Table Container should ONLY scroll horizontally */
 .table-container {
     background: white;
     border-radius: 15px;
     border: 1px solid var(--border);
     width: 100%;
-    overflow-x: auto;    /* Sideways scroll for wide tables */
-    overflow-y: visible; /* Let vertical scroll pass through to the body */
-    margin-bottom: 100px; /* Essential: creates space at the bottom */
+    overflow-x: auto;    
+    overflow-y: visible; 
+    margin-bottom: 100px; 
 }
 table { 
     width: 100%; 
     border-collapse: collapse; 
 }
-
 th { 
     background: #f8fafc; 
     padding: 12px 20px; 
@@ -74,14 +69,12 @@ th {
     font-size: 0.8rem; 
     color: var(--text-muted); 
 }
-
 td { 
     padding: 15px 20px; 
     border-top: 1px solid var(--border); 
     white-space: nowrap; 
 }
 
-/* UI Components */
 .badge-session {
     padding: 4px 10px;
     border-radius: 6px;
@@ -91,19 +84,16 @@ td {
 }
 .session-am { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .session-pm { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
 .days-count { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
 .urgent { background: #fee2e2; color: #ef4444; }
 .normal { background: #f1f5f9; color: var(--text-muted); }
 
-/* Form & Header */
 .header-flex {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
-
 .exam-form {
     background: white; 
     padding: 20px; 
@@ -114,17 +104,14 @@ td {
     margin-bottom: 30px; 
     border: 1px solid var(--border);
 }
-
 .input-group { display: flex; flex-direction: column; gap: 5px; }
 label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
 input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
-
 .btn-add {
     background: var(--primary); color: white; border: none;
     border-radius: 8px; font-weight: 600; cursor: pointer; height: 42px; margin-top: auto;
 }
 
-/* Modal Logic */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -135,7 +122,6 @@ input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8
     align-items: center;
     z-index: 2000;
 }
-
 .modal-content {
     background: white;
     width: 90%;
@@ -145,23 +131,19 @@ input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8
     box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     animation: slideUp 0.3s ease-out;
 }
-
 @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Responsive */
 @media (max-width: 900px) {
     table { min-width: 700px; }
 }
-
 @media (max-width: 768px) {
     .sidebar { display: none; }
     .main-content { padding: 20px; }
 }
 
-/* Print Overrides */
 @media print {
     .sidebar, .btn-open-modal, .btn-secondary, .btn-delete, .modal-overlay, .btn-add {
         display: none !important;
